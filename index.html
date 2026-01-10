@@ -41,7 +41,7 @@
             font-size: 1.5rem;
             font-weight: bold;
         }
-        /* 仅保留语言切换按钮容器 */
+        /* 语言切换按钮容器 */
         .nav-actions {
             display: flex;
             align-items: center;
@@ -79,7 +79,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             text-align: center;
-            max-width: 500px; /* 限制登录框宽度，更美观 */
+            max-width: 500px;
             margin: 0 auto;
         }
         .hero-card h1 {
@@ -129,31 +129,10 @@
             border: none;
             cursor: pointer;
             font-size: 1rem;
-            width: 100%; /* 登录按钮全屏宽 */
+            width: 100%;
         }
         .btn:hover {
             background-color: #2980b9;
-        }
-
-        /* 关于我板块 */
-        .about-section {
-            margin-top: 3rem;
-        }
-        .about-section .hero-card {
-            text-align: left;
-            max-width: 800px;
-        }
-        .about-section h2 {
-            color: #2c3e50;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-        .about-section p {
-            margin: 1rem 0;
-        }
-        .about-section ul {
-            margin: 1rem 0 1rem 2rem;
-            list-style: disc;
         }
 
         /* 页脚样式 */
@@ -176,7 +155,6 @@
         <div class="nav-container">
             <div class="logo">TKOHscrewinventory</div>
             <div class="nav-actions">
-                <!-- 语言切换按钮 -->
                 <div class="lang-switch">
                     <button class="lang-btn active" id="btn-zh-tw">繁體</button>
                     <button class="lang-btn" id="btn-en">English</button>
@@ -185,53 +163,33 @@
         </div>
     </nav>
 
-    <!-- 主内容区：替换为登录表单 -->
+    <!-- 主内容区：登录表单 -->
     <div class="container" id="home">
         <div class="hero-card">
             <h1 id="login-title">使用者登入</h1>
-            <!-- 登录表单 -->
             <form class="login-form" id="login-form">
                 <div class="form-group">
                     <label for="username" id="label-username">帳號</label>
-                    <input type="text" id="username" placeholder="請輸入您的帳號">
+                    <input type="text" id="username" placeholder="請輸入您的帳號" required>
                 </div>
                 <div class="form-group">
                     <label for="password" id="label-password">密碼</label>
-                    <input type="password" id="password" placeholder="請輸入您的密碼">
+                    <input type="password" id="password" placeholder="請輸入您的密碼" required>
                 </div>
                 <button type="button" class="btn" id="login-btn">登入</button>
             </form>
-        </div>
-
-        <!-- “关于我”板块 -->
-        <div class="about-section" id="about">
-            <div class="hero-card">
-                <h2 id="about-title">關於我</h2>
-                <div>
-                    <p id="about-intro">👋 大家好，我是這個網頁的創作者！</p>
-                    <p id="about-desc">這是我透過 GitHub Pages 從零搭建的第一個網頁，目前還在學習和完善中。</p>
-                    <p id="about-skill-title">✅ 已掌握的技能：</p>
-                    <ul id="about-skills">
-                        <li>建立 GitHub 倉庫並部署網頁</li>
-                        <li>編寫基礎 HTML/CSS 程式碼</li>
-                        <li>修改和更新 GitHub 上的檔案</li>
-                    </ul>
-                    <p id="about-plan">🎯 下一步計畫：繼續學習網頁設計，新增更多功能（比如圖片、表單等）。</p>
-                </div>
-            </div>
         </div>
     </div>
 
     <!-- 页脚 -->
     <footer>
-        <p id="footer-text">© 2026 我的第一個GitHub網頁 | 用GitHub Pages搭建</p>
+        <p id="footer-text">© 2026 TKOHscrewinventory | 用GitHub Pages搭建</p>
     </footer>
 
-    <!-- 多语言切换核心JS -->
+    <!-- 多语言切换 + 登录验证 JS -->
     <script>
         // 定义多语言文本数据
         const langData = {
-            // 繁体中文
             'zh-tw': {
                 loginTitle: '使用者登入',
                 labelUsername: '帳號',
@@ -239,19 +197,10 @@
                 labelPassword: '密碼',
                 placeholderPassword: '請輸入您的密碼',
                 loginBtn: '登入',
-                aboutTitle: '關於我',
-                aboutIntro: '👋 大家好，我是這個網頁的創作者！',
-                aboutDesc: '這是我透過 GitHub Pages 從零搭建的第一個網頁，目前還在學習和完善中。',
-                aboutSkillTitle: '✅ 已掌握的技能：',
-                aboutSkills: [
-                    '建立 GitHub 倉庫並部署網頁',
-                    '編寫基礎 HTML/CSS 程式碼',
-                    '修改和更新 GitHub 上的檔案'
-                ],
-                aboutPlan: '🎯 下一步計畫：繼續學習網頁設計，新增更多功能（比如圖片、表單等）。',
-                footerText: '© 2026 我的第一個GitHub網頁 | 用GitHub Pages搭建'
+                footerText: '© 2026 TKOHscrewinventory | 用GitHub Pages搭建',
+                alertSuccess: '登入成功！正在跳轉到庫存頁面...',
+                alertError: '帳號或密碼錯誤！請重新輸入'
             },
-            // 英文
             'en': {
                 loginTitle: 'User Login',
                 labelUsername: 'Username',
@@ -259,21 +208,13 @@
                 labelPassword: 'Password',
                 placeholderPassword: 'Please enter your password',
                 loginBtn: 'Login',
-                aboutTitle: 'About Me',
-                aboutIntro: '👋 Hello everyone, I am the creator of this webpage!',
-                aboutDesc: 'This is my first webpage built from scratch using GitHub Pages, and I am still learning and improving it.',
-                aboutSkillTitle: '✅ Skills I have mastered:',
-                aboutSkills: [
-                    'Create GitHub repositories and deploy webpages',
-                    'Write basic HTML/CSS code',
-                    'Modify and update files on GitHub'
-                ],
-                aboutPlan: '🎯 Next plan: Continue learning web design and add more features (such as images, forms, etc.).',
-                footerText: '© 2026 My First GitHub Webpage | Built with GitHub Pages'
+                footerText: '© 2026 TKOHscrewinventory | Built with GitHub Pages',
+                alertSuccess: 'Login successful! Redirecting to inventory page...',
+                alertError: 'Username or password is incorrect! Please try again'
             }
         };
 
-        // 获取页面元素
+        // 获取元素
         const btnZhTw = document.getElementById('btn-zh-tw');
         const btnEn = document.getElementById('btn-en');
         const loginTitle = document.getElementById('login-title');
@@ -282,67 +223,43 @@
         const labelPassword = document.getElementById('label-password');
         const passwordInput = document.getElementById('password');
         const loginBtn = document.getElementById('login-btn');
-        const aboutTitle = document.getElementById('about-title');
-        const aboutIntro = document.getElementById('about-intro');
-        const aboutDesc = document.getElementById('about-desc');
-        const aboutSkillTitle = document.getElementById('about-skill-title');
-        const aboutSkills = document.getElementById('about-skills');
-        const aboutPlan = document.getElementById('about-plan');
         const footerText = document.getElementById('footer-text');
+        let currentLang = 'zh-tw';
 
-        // 切换语言的函数
+        // 语言切换函数
         function switchLang(lang) {
-            // 更新按钮激活状态
+            currentLang = lang;
             btnZhTw.classList.toggle('active', lang === 'zh-tw');
             btnEn.classList.toggle('active', lang === 'en');
-            
-            // 获取对应语言的文本
             const text = langData[lang];
-            
-            // 更新登录表单文字
             loginTitle.textContent = text.loginTitle;
             labelUsername.textContent = text.labelUsername;
             usernameInput.placeholder = text.placeholderUsername;
             labelPassword.textContent = text.labelPassword;
             passwordInput.placeholder = text.placeholderPassword;
             loginBtn.textContent = text.loginBtn;
-            
-            // 更新关于我板块文字
-            aboutTitle.textContent = text.aboutTitle;
-            aboutIntro.textContent = text.aboutIntro;
-            aboutDesc.textContent = text.aboutDesc;
-            aboutSkillTitle.textContent = text.aboutSkillTitle;
-            
-            // 更新技能列表
-            aboutSkills.innerHTML = '';
-            text.aboutSkills.forEach(skill => {
-                const li = document.createElement('li');
-                li.textContent = skill;
-                aboutSkills.appendChild(li);
-            });
-            
-            // 更新计划文字
-            aboutPlan.textContent = text.aboutPlan;
-            
-            // 更新页脚文字
             footerText.textContent = text.footerText;
-            
-            // 更新网页的lang属性
             document.documentElement.lang = lang;
         }
 
-        // 绑定按钮点击事件
+        // 绑定语言切换事件
         btnZhTw.addEventListener('click', () => switchLang('zh-tw'));
         btnEn.addEventListener('click', () => switchLang('en'));
 
-        // 登录按钮点击事件（仅演示，无实际验证逻辑）
+        // 登录验证逻辑：正确账号ortsis，密码nyhsis
         loginBtn.addEventListener('click', () => {
-            const username = usernameInput.value;
-            const password = passwordInput.value;
-            if (username && password) {
-                alert(langData[document.documentElement.lang].loginBtn + ' 按鈕點擊成功！\n帳號：' + username + '\n密碼：' + password);
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            const text = langData[currentLang];
+            if (username === 'ortsis' && password === 'nyhsis') {
+                alert(text.alertSuccess);
+                // 跳转到库存页面
+                window.location.href = 'inventory.html';
             } else {
-                alert('請填寫完整的帳號和密碼！');
+                alert(text.alertError);
+                // 清空输入框
+                usernameInput.value = '';
+                passwordInput.value = '';
             }
         });
     </script>
