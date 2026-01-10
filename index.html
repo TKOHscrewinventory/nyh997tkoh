@@ -1,26 +1,136 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<!-- 网页的头部信息，不会显示在页面上 -->
 <head>
     <meta charset="UTF-8">
-    <!-- 网页标题，会显示在浏览器标签上 -->
+    <!-- 适配手机端的关键设置 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的第一个GitHub网页</title>
-    <!-- 简单的样式，让文字居中、变大 -->
     <style>
-        body {
-            text-align: center;
-            margin-top: 100px;
-            font-family: Arial, 微软雅黑;
+        /* 全局样式重置，消除浏览器默认边距 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        h1 {
+
+        /* 全局字体和背景，让页面更清爽 */
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 导航栏样式：固定顶部，带阴影 */
+        nav {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 1.5rem;
+            transition: color 0.3s;
+        }
+        .nav-links a:hover {
+            color: #3498db;
+        }
+
+        /* 主内容区：居中，带卡片效果 */
+        .container {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+        .hero-card {
+            background-color: white;
+            padding: 4rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .hero-card h1 {
             color: #2c3e50;
-            font-size: 40px;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .hero-card p {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+        /* 按钮样式：增加交互感 */
+        .btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* 页脚样式 */
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+        footer p {
+            font-size: 0.9rem;
+            opacity: 0.8;
         }
     </style>
 </head>
-<!-- 网页的主体内容，会显示在页面上 -->
 <body>
-    <h1>你好！这是我的第一个GitHub网页 🎉</h1>
-    <p>我成功用GitHub Pages搭建了自己的网页！</p>
+    <!-- 导航栏 -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">我的个人网页</div>
+            <div class="nav-links">
+                <a href="#home">首页</a>
+                <a href="#about">关于我</a>
+                <a href="#contact">联系我</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="container" id="home">
+        <div class="hero-card">
+            <h1>你好！这是我的第一个GitHub网页 🎉</h1>
+            <p>我成功用GitHub Pages搭建了自己的网页，现在正在逐步完善它！</p>
+            <a href="#about" class="btn">了解更多</a>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <p>© 2026 我的第一个GitHub网页 | 用GitHub Pages搭建</p>
+    </footer>
 </body>
 </html>
