@@ -41,7 +41,7 @@
             font-size: 1.5rem;
             font-weight: bold;
         }
-        /* 仅保留语言切换按钮容器，删除导航链接 */
+        /* 仅保留语言切换按钮容器 */
         .nav-actions {
             display: flex;
             align-items: center;
@@ -56,7 +56,7 @@
             cursor: pointer;
             transition: all 0.3s;
             font-size: 0.9rem;
-            margin-left: 0.8rem; /* 按钮之间加间距 */
+            margin-left: 0.8rem;
         }
         .lang-btn:hover {
             background-color: #3498db;
@@ -79,16 +79,43 @@
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             text-align: center;
+            max-width: 500px; /* 限制登录框宽度，更美观 */
+            margin: 0 auto;
         }
         .hero-card h1 {
             color: #2c3e50;
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .hero-card p {
-            font-size: 1.2rem;
-            color: #666;
+            font-size: 2rem;
             margin-bottom: 2rem;
+        }
+        /* 登录表单样式 */
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            text-align: left;
+            margin-bottom: 1rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .form-group label {
+            font-size: 1rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        .form-group input {
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
         /* 按钮样式 */
         .btn {
@@ -102,6 +129,7 @@
             border: none;
             cursor: pointer;
             font-size: 1rem;
+            width: 100%; /* 登录按钮全屏宽 */
         }
         .btn:hover {
             background-color: #2980b9;
@@ -114,7 +142,6 @@
         .about-section .hero-card {
             text-align: left;
             max-width: 800px;
-            margin: 0 auto;
         }
         .about-section h2 {
             color: #2c3e50;
@@ -144,12 +171,12 @@
     </style>
 </head>
 <body>
-    <!-- 导航栏：删除了首页/关于我/联系我 链接 -->
+    <!-- 导航栏 -->
     <nav>
         <div class="nav-container">
             <div class="logo">TKOHscrewinventory</div>
             <div class="nav-actions">
-                <!-- 仅保留语言切换按钮 -->
+                <!-- 语言切换按钮 -->
                 <div class="lang-switch">
                     <button class="lang-btn active" id="btn-zh-tw">繁體</button>
                     <button class="lang-btn" id="btn-en">English</button>
@@ -158,12 +185,22 @@
         </div>
     </nav>
 
-    <!-- 主内容区 -->
+    <!-- 主内容区：替换为登录表单 -->
     <div class="container" id="home">
         <div class="hero-card">
-            <h1 id="hero-title">你好！這是我的第一個GitHub網頁 🎉</h1>
-            <p id="hero-desc">我成功用GitHub Pages搭建了自己的網頁，現在正在逐步完善它！</p>
-            <a href="#about" class="btn" id="hero-btn">瞭解更多</a>
+            <h1 id="login-title">使用者登入</h1>
+            <!-- 登录表单 -->
+            <form class="login-form" id="login-form">
+                <div class="form-group">
+                    <label for="username" id="label-username">帳號</label>
+                    <input type="text" id="username" placeholder="請輸入您的帳號">
+                </div>
+                <div class="form-group">
+                    <label for="password" id="label-password">密碼</label>
+                    <input type="password" id="password" placeholder="請輸入您的密碼">
+                </div>
+                <button type="button" class="btn" id="login-btn">登入</button>
+            </form>
         </div>
 
         <!-- “关于我”板块 -->
@@ -196,9 +233,12 @@
         const langData = {
             // 繁体中文
             'zh-tw': {
-                heroTitle: '你好！這是我的第一個GitHub網頁 🎉',
-                heroDesc: '我成功用GitHub Pages搭建了自己的網頁，現在正在逐步完善它！',
-                heroBtn: '瞭解更多',
+                loginTitle: '使用者登入',
+                labelUsername: '帳號',
+                placeholderUsername: '請輸入您的帳號',
+                labelPassword: '密碼',
+                placeholderPassword: '請輸入您的密碼',
+                loginBtn: '登入',
                 aboutTitle: '關於我',
                 aboutIntro: '👋 大家好，我是這個網頁的創作者！',
                 aboutDesc: '這是我透過 GitHub Pages 從零搭建的第一個網頁，目前還在學習和完善中。',
@@ -213,9 +253,12 @@
             },
             // 英文
             'en': {
-                heroTitle: 'Hello! This is my first GitHub webpage 🎉',
-                heroDesc: 'I successfully built my own webpage with GitHub Pages, and I am gradually improving it!',
-                heroBtn: 'Learn More',
+                loginTitle: 'User Login',
+                labelUsername: 'Username',
+                placeholderUsername: 'Please enter your username',
+                labelPassword: 'Password',
+                placeholderPassword: 'Please enter your password',
+                loginBtn: 'Login',
                 aboutTitle: 'About Me',
                 aboutIntro: '👋 Hello everyone, I am the creator of this webpage!',
                 aboutDesc: 'This is my first webpage built from scratch using GitHub Pages, and I am still learning and improving it.',
@@ -233,9 +276,12 @@
         // 获取页面元素
         const btnZhTw = document.getElementById('btn-zh-tw');
         const btnEn = document.getElementById('btn-en');
-        const heroTitle = document.getElementById('hero-title');
-        const heroDesc = document.getElementById('hero-desc');
-        const heroBtn = document.getElementById('hero-btn');
+        const loginTitle = document.getElementById('login-title');
+        const labelUsername = document.getElementById('label-username');
+        const usernameInput = document.getElementById('username');
+        const labelPassword = document.getElementById('label-password');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('login-btn');
         const aboutTitle = document.getElementById('about-title');
         const aboutIntro = document.getElementById('about-intro');
         const aboutDesc = document.getElementById('about-desc');
@@ -253,10 +299,13 @@
             // 获取对应语言的文本
             const text = langData[lang];
             
-            // 更新首页英雄区文字
-            heroTitle.textContent = text.heroTitle;
-            heroDesc.textContent = text.heroDesc;
-            heroBtn.textContent = text.heroBtn;
+            // 更新登录表单文字
+            loginTitle.textContent = text.loginTitle;
+            labelUsername.textContent = text.labelUsername;
+            usernameInput.placeholder = text.placeholderUsername;
+            labelPassword.textContent = text.labelPassword;
+            passwordInput.placeholder = text.placeholderPassword;
+            loginBtn.textContent = text.loginBtn;
             
             // 更新关于我板块文字
             aboutTitle.textContent = text.aboutTitle;
@@ -285,6 +334,17 @@
         // 绑定按钮点击事件
         btnZhTw.addEventListener('click', () => switchLang('zh-tw'));
         btnEn.addEventListener('click', () => switchLang('en'));
+
+        // 登录按钮点击事件（仅演示，无实际验证逻辑）
+        loginBtn.addEventListener('click', () => {
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+            if (username && password) {
+                alert(langData[document.documentElement.lang].loginBtn + ' 按鈕點擊成功！\n帳號：' + username + '\n密碼：' + password);
+            } else {
+                alert('請填寫完整的帳號和密碼！');
+            }
+        });
     </script>
 </body>
 </html>
