@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screw Inventory - TKOHscrewinventory</title>
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 导航栏 */
+        nav {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .logout-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+
+        /* 主布局：左侧分类 + 右侧表格 */
+        .main-layout {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+            display: flex;
+            gap: 2rem;
+        }
+
+        /* 左侧分类栏 */
+        .category-sidebar {
+            width: 250px;
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            height: fit-content;
+            position: sticky;
+            top: 80px;
+        }
+        .category-sidebar h2 {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #3498db;
+        }
+        .category-list {
+            list-style: none;
+        }
+        .category-item {
+            margin-bottom: 1rem;
+        }
+        .category-item a {
+            text-decoration: none;
+            color: #333;
+            font-size: 1rem;
+            padding: 0.5rem;
+            display: block;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .category-item a:hover, .category-item a.active {
+            background-color: #3498db;
+            color: white;
+        }
+
+        /* 右侧表格区域 */
+        .table-container {
+            flex: 1;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .table-container h2 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        /* 库存表格样式 */
+        .inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .inventory-table th, .inventory-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .inventory-table th {
+            background-color: #2c3e50;
+            color: white;
+        }
+        .inventory-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        .stock-status {
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .status-in {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .status-low {
+            background-color: #f39c12;
+            color: white;
+        }
+        .status-out {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        /* 响应式适配：手机端合并布局 */
+        @media (max-width: 768px) {
+            .main-layout {
+                flex-direction: column;
+            }
+            .category-sidebar {
+                width: 100%;
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">TKOHscrewinventory</div>
+            <!-- 登出按钮：返回登录页 -->
+            <button class="logout-btn" onclick="window.location.href='index.html'">登出</button>
+        </div>
+    </nav>
+
+    <!-- 主布局 -->
+    <div class="main-layout">
+        <!-- 左侧螺丝分类栏 -->
+        <div class="category-sidebar">
+            <h2>螺絲分類</h2>
+            <ul class="category-list">
+                <li class="category-item"><a href="#" class="active">全部螺絲</a></li>
+                <li class="category-item"><a href="#">十字槽螺絲</a></li>
+                <li class="category-item"><a href="#">內六角螺絲</a></li>
+                <li class="category-item"><a href="#">一字槽螺絲</a></li>
+                <li class="category-item"><a href="#">自攻螺絲</a></li>
+                <li class="category-item"><a href="#">緊固件配件</a></li>
+            </ul>
+        </div>
+
+        <!-- 右侧库存表格 -->
+        <div class="table-container">
+            <h2>Screw Inventory 螺絲庫存表</h2>
+            <table class="inventory-table">
+                <thead>
+                    <tr>
+                        <th>螺絲型號</th>
+                        <th>螺絲類型</th>
+                        <th>規格 (mm)</th>
+                        <th>庫存量</th>
+                        <th>庫存狀態</th>
+                        <th>備註</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>SC-001</td>
+                        <td>十字槽螺絲</td>
+                        <td>M3 × 10</td>
+                        <td>500</td>
+                        <td><span class="stock-status status-in">有庫存</span></td>
+                        <td>常用型號</td>
+                    </tr>
+                    <tr>
+                        <td>SC-002</td>
+                        <td>內六角螺絲</td>
+                        <td>M5 × 20</td>
+                        <td>80</td>
+                        <td><span class="stock-status status-low">庫存偏低</span></td>
+                        <td>需補貨</td>
+                    </tr>
+                    <tr>
+                        <td>SC-003</td>
+                        <td>自攻螺絲</td>
+                        <td>M4 × 15</td>
+                        <td>0</td>
+                        <td><span class="stock-status status-out">無庫存</span></td>
+                        <td>已停產</td>
+                    </tr>
+                    <tr>
+                        <td>SC-004</td>
+                        <td>一字槽螺絲</td>
+                        <td>M2 × 8</td>
+                        <td>1200</td>
+                        <td><span class="stock-status status-in">有庫存</span></td>
+                        <td>庫存充足</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 分类点击高亮逻辑
+        const categoryLinks = document.querySelectorAll('.category-item a');
+        categoryLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                categoryLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
