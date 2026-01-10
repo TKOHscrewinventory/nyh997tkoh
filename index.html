@@ -1,23 +1,26 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-TW"> <!-- 默认繁体中文 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TKOHscrewinventory</title>
     <style>
+        /* 全局样式重置 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        /* 全局字体和背景 */
         body {
-            font-family: "Microsoft YaHei", Arial, sans-serif;
+            font-family: "Microsoft JhengHei", Arial, sans-serif; /* 适配繁体字体 */
             background-color: #f8f9fa;
             color: #333;
             line-height: 1.6;
         }
 
+        /* 导航栏样式 */
         nav {
             background-color: #2c3e50;
             color: white;
@@ -38,6 +41,12 @@
             font-size: 1.5rem;
             font-weight: bold;
         }
+        /* 导航链接 + 语言切换按钮 容器 */
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem; /* 链接和语言按钮之间的间距 */
+        }
         .nav-links a {
             color: white;
             text-decoration: none;
@@ -47,7 +56,27 @@
         .nav-links a:hover {
             color: #3498db;
         }
+        /* 语言切换按钮样式 */
+        .lang-btn {
+            background: transparent;
+            color: white;
+            border: 1px solid #3498db;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        .lang-btn:hover {
+            background-color: #3498db;
+            color: white;
+        }
+        .lang-btn.active {
+            background-color: #3498db;
+            border-color: #2980b9;
+        }
 
+        /* 主内容区 */
         .container {
             max-width: 1200px;
             margin: 3rem auto;
@@ -70,6 +99,7 @@
             color: #666;
             margin-bottom: 2rem;
         }
+        /* 按钮样式 */
         .btn {
             display: inline-block;
             background-color: #3498db;
@@ -86,6 +116,29 @@
             background-color: #2980b9;
         }
 
+        /* 关于我板块 */
+        .about-section {
+            margin-top: 3rem;
+        }
+        .about-section .hero-card {
+            text-align: left;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .about-section h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .about-section p {
+            margin: 1rem 0;
+        }
+        .about-section ul {
+            margin: 1rem 0 1rem 2rem;
+            list-style: disc;
+        }
+
+        /* 页脚样式 */
         footer {
             background-color: #2c3e50;
             color: white;
@@ -103,12 +156,19 @@
     <!-- 导航栏 -->
     <nav>
         <div class="nav-container">
-            <!-- 👇 这里是修改的核心位置，把“我的个人网页”改成“TKOHscrewinventory” -->
             <div class="logo">TKOHscrewinventory</div>
-            <div class="nav-links">
-                <a href="#home">首页</a>
-                <a href="#about">关于我</a>
-                <a href="#contact">联系我</a>
+            <div class="nav-actions">
+                <!-- 导航链接 -->
+                <div class="nav-links">
+                    <a href="#home" id="nav-home">首頁</a>
+                    <a href="#about" id="nav-about">關於我</a>
+                    <a href="#contact" id="nav-contact">聯繫我</a>
+                </div>
+                <!-- 语言切换按钮 -->
+                <div class="lang-switch">
+                    <button class="lang-btn active" id="btn-zh-tw">繁體</button>
+                    <button class="lang-btn" id="btn-en">English</button>
+                </div>
             </div>
         </div>
     </nav>
@@ -116,25 +176,25 @@
     <!-- 主内容区 -->
     <div class="container" id="home">
         <div class="hero-card">
-            <h1>你好！这是我的第一个GitHub网页 🎉</h1>
-            <p>我成功用GitHub Pages搭建了自己的网页，现在正在逐步完善它！</p>
-            <a href="#about" class="btn">了解更多</a>
+            <h1 id="hero-title">你好！這是我的第一個GitHub網頁 🎉</h1>
+            <p id="hero-desc">我成功用GitHub Pages搭建了自己的網頁，現在正在逐步完善它！</p>
+            <a href="#about" class="btn" id="hero-btn">瞭解更多</a>
         </div>
 
         <!-- “关于我”板块 -->
-        <div class="about-section" id="about" style="margin-top: 3rem;">
+        <div class="about-section" id="about">
             <div class="hero-card">
-                <h2 style="color: #2c3e50; margin-bottom: 1.5rem;">关于我</h2>
-                <div style="text-align: left; max-width: 800px; margin: 0 auto;">
-                    <p>👋 大家好，我是这个网页的创作者！</p>
-                    <p style="margin: 1rem 0;">这是我通过 GitHub Pages 从零搭建的第一个网页，目前还在学习和完善中。</p>
-                    <p>✅ 已掌握的技能：</p>
-                    <ul style="margin: 1rem 0 1rem 2rem; list-style: disc;">
-                        <li>创建 GitHub 仓库并部署网页</li>
-                        <li>编写基础 HTML/CSS 代码</li>
-                        <li>修改和更新 GitHub 上的文件</li>
+                <h2 id="about-title">關於我</h2>
+                <div>
+                    <p id="about-intro">👋 大家好，我是這個網頁的創作者！</p>
+                    <p id="about-desc">這是我透過 GitHub Pages 從零搭建的第一個網頁，目前還在學習和完善中。</p>
+                    <p id="about-skill-title">✅ 已掌握的技能：</p>
+                    <ul id="about-skills">
+                        <li>建立 GitHub 倉庫並部署網頁</li>
+                        <li>編寫基礎 HTML/CSS 程式碼</li>
+                        <li>修改和更新 GitHub 上的檔案</li>
                     </ul>
-                    <p>🎯 下一步计划：继续学习网页设计，添加更多功能（比如图片、表单等）。</p>
+                    <p id="about-plan">🎯 下一步計畫：繼續學習網頁設計，新增更多功能（比如圖片、表單等）。</p>
                 </div>
             </div>
         </div>
@@ -142,7 +202,118 @@
 
     <!-- 页脚 -->
     <footer>
-        <p>© 2026 我的第一个GitHub网页 | 用GitHub Pages搭建</p>
+        <p id="footer-text">© 2026 我的第一個GitHub網頁 | 用GitHub Pages搭建</p>
     </footer>
+
+    <!-- 多语言切换核心JS -->
+    <script>
+        // 定义多语言文本数据
+        const langData = {
+            // 繁体中文
+            'zh-tw': {
+                navHome: '首頁',
+                navAbout: '關於我',
+                navContact: '聯繫我',
+                heroTitle: '你好！這是我的第一個GitHub網頁 🎉',
+                heroDesc: '我成功用GitHub Pages搭建了自己的網頁，現在正在逐步完善它！',
+                heroBtn: '瞭解更多',
+                aboutTitle: '關於我',
+                aboutIntro: '👋 大家好，我是這個網頁的創作者！',
+                aboutDesc: '這是我透過 GitHub Pages 從零搭建的第一個網頁，目前還在學習和完善中。',
+                aboutSkillTitle: '✅ 已掌握的技能：',
+                aboutSkills: [
+                    '建立 GitHub 倉庫並部署網頁',
+                    '編寫基礎 HTML/CSS 程式碼',
+                    '修改和更新 GitHub 上的檔案'
+                ],
+                aboutPlan: '🎯 下一步計畫：繼續學習網頁設計，新增更多功能（比如圖片、表單等）。',
+                footerText: '© 2026 我的第一個GitHub網頁 | 用GitHub Pages搭建'
+            },
+            // 英文
+            'en': {
+                navHome: 'Home',
+                navAbout: 'About Me',
+                navContact: 'Contact Me',
+                heroTitle: 'Hello! This is my first GitHub webpage 🎉',
+                heroDesc: 'I successfully built my own webpage with GitHub Pages, and I am gradually improving it!',
+                heroBtn: 'Learn More',
+                aboutTitle: 'About Me',
+                aboutIntro: '👋 Hello everyone, I am the creator of this webpage!',
+                aboutDesc: 'This is my first webpage built from scratch using GitHub Pages, and I am still learning and improving it.',
+                aboutSkillTitle: '✅ Skills I have mastered:',
+                aboutSkills: [
+                    'Create GitHub repositories and deploy webpages',
+                    'Write basic HTML/CSS code',
+                    'Modify and update files on GitHub'
+                ],
+                aboutPlan: '🎯 Next plan: Continue learning web design and add more features (such as images, forms, etc.).',
+                footerText: '© 2026 My First GitHub Webpage | Built with GitHub Pages'
+            }
+        };
+
+        // 获取页面元素
+        const btnZhTw = document.getElementById('btn-zh-tw');
+        const btnEn = document.getElementById('btn-en');
+        const navHome = document.getElementById('nav-home');
+        const navAbout = document.getElementById('nav-about');
+        const navContact = document.getElementById('nav-contact');
+        const heroTitle = document.getElementById('hero-title');
+        const heroDesc = document.getElementById('hero-desc');
+        const heroBtn = document.getElementById('hero-btn');
+        const aboutTitle = document.getElementById('about-title');
+        const aboutIntro = document.getElementById('about-intro');
+        const aboutDesc = document.getElementById('about-desc');
+        const aboutSkillTitle = document.getElementById('about-skill-title');
+        const aboutSkills = document.getElementById('about-skills');
+        const aboutPlan = document.getElementById('about-plan');
+        const footerText = document.getElementById('footer-text');
+
+        // 切换语言的函数
+        function switchLang(lang) {
+            // 更新按钮激活状态
+            btnZhTw.classList.toggle('active', lang === 'zh-tw');
+            btnEn.classList.toggle('active', lang === 'en');
+            
+            // 获取对应语言的文本
+            const text = langData[lang];
+            
+            // 更新导航栏文字
+            navHome.textContent = text.navHome;
+            navAbout.textContent = text.navAbout;
+            navContact.textContent = text.navContact;
+            
+            // 更新首页英雄区文字
+            heroTitle.textContent = text.heroTitle;
+            heroDesc.textContent = text.heroDesc;
+            heroBtn.textContent = text.heroBtn;
+            
+            // 更新关于我板块文字
+            aboutTitle.textContent = text.aboutTitle;
+            aboutIntro.textContent = text.aboutIntro;
+            aboutDesc.textContent = text.aboutDesc;
+            aboutSkillTitle.textContent = text.aboutSkillTitle;
+            
+            // 更新技能列表（需要清空原有列表再重新添加）
+            aboutSkills.innerHTML = '';
+            text.aboutSkills.forEach(skill => {
+                const li = document.createElement('li');
+                li.textContent = skill;
+                aboutSkills.appendChild(li);
+            });
+            
+            // 更新计划文字
+            aboutPlan.textContent = text.aboutPlan;
+            
+            // 更新页脚文字
+            footerText.textContent = text.footerText;
+            
+            // 更新网页的lang属性（适配浏览器翻译）
+            document.documentElement.lang = lang;
+        }
+
+        // 绑定按钮点击事件
+        btnZhTw.addEventListener('click', () => switchLang('zh-tw'));
+        btnEn.addEventListener('click', () => switchLang('en'));
+    </script>
 </body>
 </html>
