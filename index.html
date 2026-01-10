@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW"> <!-- 默认繁体中文 -->
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,7 @@
 
         /* 全局字体和背景 */
         body {
-            font-family: "Microsoft JhengHei", Arial, sans-serif; /* 适配繁体字体 */
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
             background-color: #f8f9fa;
             color: #333;
             line-height: 1.6;
@@ -41,20 +41,10 @@
             font-size: 1.5rem;
             font-weight: bold;
         }
-        /* 导航链接 + 语言切换按钮 容器 */
+        /* 仅保留语言切换按钮容器，删除导航链接 */
         .nav-actions {
             display: flex;
             align-items: center;
-            gap: 1.5rem; /* 链接和语言按钮之间的间距 */
-        }
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            margin-left: 1.5rem;
-            transition: color 0.3s;
-        }
-        .nav-links a:hover {
-            color: #3498db;
         }
         /* 语言切换按钮样式 */
         .lang-btn {
@@ -66,6 +56,7 @@
             cursor: pointer;
             transition: all 0.3s;
             font-size: 0.9rem;
+            margin-left: 0.8rem; /* 按钮之间加间距 */
         }
         .lang-btn:hover {
             background-color: #3498db;
@@ -153,18 +144,12 @@
     </style>
 </head>
 <body>
-    <!-- 导航栏 -->
+    <!-- 导航栏：删除了首页/关于我/联系我 链接 -->
     <nav>
         <div class="nav-container">
             <div class="logo">TKOHscrewinventory</div>
             <div class="nav-actions">
-                <!-- 导航链接 -->
-                <div class="nav-links">
-                    <a href="#home" id="nav-home">首頁</a>
-                    <a href="#about" id="nav-about">關於我</a>
-                    <a href="#contact" id="nav-contact">聯繫我</a>
-                </div>
-                <!-- 语言切换按钮 -->
+                <!-- 仅保留语言切换按钮 -->
                 <div class="lang-switch">
                     <button class="lang-btn active" id="btn-zh-tw">繁體</button>
                     <button class="lang-btn" id="btn-en">English</button>
@@ -211,9 +196,6 @@
         const langData = {
             // 繁体中文
             'zh-tw': {
-                navHome: '首頁',
-                navAbout: '關於我',
-                navContact: '聯繫我',
                 heroTitle: '你好！這是我的第一個GitHub網頁 🎉',
                 heroDesc: '我成功用GitHub Pages搭建了自己的網頁，現在正在逐步完善它！',
                 heroBtn: '瞭解更多',
@@ -231,9 +213,6 @@
             },
             // 英文
             'en': {
-                navHome: 'Home',
-                navAbout: 'About Me',
-                navContact: 'Contact Me',
                 heroTitle: 'Hello! This is my first GitHub webpage 🎉',
                 heroDesc: 'I successfully built my own webpage with GitHub Pages, and I am gradually improving it!',
                 heroBtn: 'Learn More',
@@ -254,9 +233,6 @@
         // 获取页面元素
         const btnZhTw = document.getElementById('btn-zh-tw');
         const btnEn = document.getElementById('btn-en');
-        const navHome = document.getElementById('nav-home');
-        const navAbout = document.getElementById('nav-about');
-        const navContact = document.getElementById('nav-contact');
         const heroTitle = document.getElementById('hero-title');
         const heroDesc = document.getElementById('hero-desc');
         const heroBtn = document.getElementById('hero-btn');
@@ -277,11 +253,6 @@
             // 获取对应语言的文本
             const text = langData[lang];
             
-            // 更新导航栏文字
-            navHome.textContent = text.navHome;
-            navAbout.textContent = text.navAbout;
-            navContact.textContent = text.navContact;
-            
             // 更新首页英雄区文字
             heroTitle.textContent = text.heroTitle;
             heroDesc.textContent = text.heroDesc;
@@ -293,7 +264,7 @@
             aboutDesc.textContent = text.aboutDesc;
             aboutSkillTitle.textContent = text.aboutSkillTitle;
             
-            // 更新技能列表（需要清空原有列表再重新添加）
+            // 更新技能列表
             aboutSkills.innerHTML = '';
             text.aboutSkills.forEach(skill => {
                 const li = document.createElement('li');
@@ -307,7 +278,7 @@
             // 更新页脚文字
             footerText.textContent = text.footerText;
             
-            // 更新网页的lang属性（适配浏览器翻译）
+            // 更新网页的lang属性
             document.documentElement.lang = lang;
         }
 
