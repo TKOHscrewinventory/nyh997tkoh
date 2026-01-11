@@ -182,7 +182,7 @@
             
             <div class="form-group">
                 <label for="cat-no-input">Cat No.（輸入數字自動匹配）</label>
-                <input type="text" id="cat-no-input" placeholder="例如：401.506 或 06/16" autocomplete="off">
+                <input type="text" id="cat-no-input" placeholder="例如：412.806 或 06/16" autocomplete="off">
                 <!-- 搜索建议下拉框 -->
                 <div id="cat-no-suggestions" class="search-suggestions"></div>
                 <!-- 产品信息提示 -->
@@ -209,6 +209,19 @@
         const addBtn = document.getElementById('add-btn');
         const minusBtn = document.getElementById('minus-btn');
 
+        // ========== 产品配置同步（和inventory一致） ==========
+        // 1. Cortex Screw 长度/前缀
+        const cortexLengthList = [];
+        for (let i = 6; i <= 14; i++) cortexLengthList.push(i);
+        for (let i = 16; i <= 32; i += 2) cortexLengthList.push(i);
+        const cortexCatNoPrefix = '401.5';
+
+        // 2. Locking Screw 长度/前缀（6-14步长1，14-30步长2）
+        const lockingLengthList = [];
+        for (let i = 6; i <= 14; i++) lockingLengthList.push(i);
+        for (let i = 16; i <= 30; i += 2) lockingLengthList.push(i);
+        const lockingCatNoPrefix = '412.8';
+
         // ========== 数据初始化 ==========
         // 从inventory获取所有Cat No.（优先从localStorage读取，兼容直接打开页面）
         let allCatNos = [];
@@ -216,11 +229,10 @@
             // 优先调用inventory的全局函数
             allCatNos = window.opener?.getAllCatNos() || JSON.parse(localStorage.getItem('allCatNosBackup')) || [];
         } catch (e) {
-            // 本地初始化（兼容直接打开）
-            const lengthList = [];
-            for (let i = 6; i <= 14; i++) lengthList.push(i);
-            for (let i = 16; i <= 32; i += 2) lengthList.push(i);
-            allCatNos = lengthList.map(len => `401.5${String(len).padStart(2, '0')}`).flatMap(catNo => [catNo, ...Array(2).fill(catNo)]); // 重复填充适配多产品
+            // 本地初始化（同步inventory的Cat No.规则）
+            const cortexCatNos = cortexLengthList.map(len => `${cortexCatNoPrefix}${String(len).padStart(2, '0')}`);
+            const lockingCatNos = lockingLengthList.map(len => `${lockingCatNoPrefix}${String(len).padStart(2, '0')}`);
+            allCatNos = [...cortexCatNos, ...lockingCatNos];
         }
 
         // 备份Cat No.到本地（防止直接打开页面无数据）
@@ -234,7 +246,7 @@
             const cleanKeyword = keyword.replace(/[^0-9.]/g, '');
             return [...new Set(allCatNos)].filter(catNo => {
                 // 匹配规则：包含关键词 / 尾号（XX）匹配
-                const catNoTail = catNo.split('.')[1] || ''; // 取506/516等尾号
+                const catNoTail = catNo.split('.')[1] || ''; // 取506/806等尾号
                 return catNo.includes(cleanKeyword) || catNoTail.includes(cleanKeyword) || catNo.endsWith(cleanKeyword.padStart(2, '0'));
             });
         }
@@ -273,19 +285,11 @@
                 // 优先调用inventory的全局函数
                 itemInfo = window.opener?.getScrewItemByCatNo(catNo);
                 if (!itemInfo) {
-                    // 本地查找（兼容直接打开）
-                    const typeKeys = ['cortex', 'locking', 'valocking'];
-                    for (const typeKey of typeKeys) {
-                        const data = JSON.parse(localStorage.getItem(`${typeKey}Data`)) || [];
-                        const item = data.find(i => i.catNo === catNo);
-                        if (item) {
-                            itemInfo = { item, typeKey };
-                            break;
-                        }
-                    }
+                    // 本地查找（同步inventory的规则）
+                    itemInfo = getLocalItemByCatNo(catNo);
                 }
             } catch (e) {
-                itemInfo = null;
+                itemInfo = getLocalItemByCatNo(catNo);
             }
 
             if (itemInfo) {
@@ -366,14 +370,32 @@ Cat No.：${catNo}
             adjustNumInput.value = '';
         }
 
-        // 本地查找产品（兼容直接打开页面）
+        // 本地查找产品（同步inventory的配置）
         function getLocalItemByCatNo(catNo) {
-            const typeKeys = ['cortex', 'locking', 'valocking'];
-            for (const typeKey of typeKeys) {
-                const data = JSON.parse(localStorage.getItem(`${typeKey}Data`)) || [];
-                const item = data.find(i => i.catNo === catNo);
-                if (item) return { item, typeKey };
-            }
+            // 先查locking（412.8XX）
+            const lockingData = JSON.parse(localStorage.getItem('lockingData')) || lockingLengthList.map(len => ({
+                catNo: `${lockingCatNoPrefix}${String(len).padStart(2, '0')}`,
+                length: len,
+                stock: 0,
+                status: '無庫存',
+                typeKey: 'locking',
+                typeName: '2.4Φ locking screw'
+            }));
+            const lockingItem = lockingData.find(i => i.catNo === catNo);
+            if (lockingItem) return { item: lockingItem, typeKey: 'locking' };
+
+            // 再查cortex（401.5XX）
+            const cortexData = JSON.parse(localStorage.getItem('cortexData')) || cortexLengthList.map(len => ({
+                catNo: `${cortexCatNoPrefix}${String(len).padStart(2, '0')}`,
+                length: len,
+                stock: 0,
+                status: '無庫存',
+                typeKey: 'cortex',
+                typeName: '2.4Φ cortex screw'
+            }));
+            const cortexItem = cortexData.find(i => i.catNo === catNo);
+            if (cortexItem) return { item: cortexItem, typeKey: 'cortex' };
+
             return null;
         }
 
@@ -418,12 +440,11 @@ Cat No.：${catNo}
 
         // ========== 页面初始化 ==========
         window.onload = () => {
-            // 预加载所有Cat No.备份
+            // 预加载所有Cat No.备份（同步新规则）
             if (!localStorage.getItem('allCatNosBackup')) {
-                const lengthList = [];
-                for (let i = 6; i <= 14; i++) lengthList.push(i);
-                for (let i = 16; i <= 32; i += 2) lengthList.push(i);
-                const initCatNos = lengthList.map(len => `401.5${String(len).padStart(2, '0')}`);
+                const cortexCatNos = cortexLengthList.map(len => `${cortexCatNoPrefix}${String(len).padStart(2, '0')}`);
+                const lockingCatNos = lockingLengthList.map(len => `${lockingCatNoPrefix}${String(len).padStart(2, '0')}`);
+                const initCatNos = [...cortexCatNos, ...lockingCatNos];
                 localStorage.setItem('allCatNosBackup', JSON.stringify(initCatNos));
                 allCatNos = initCatNos;
             }
