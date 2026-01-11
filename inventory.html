@@ -86,7 +86,7 @@
             gap: 2rem;
         }
 
-        /* 左侧分类栏 - 核心修改：展开折叠样式 */
+        /* 左侧分类栏 - 展开折叠样式 */
         .category-sidebar {
             width: 250px;
             background-color: white;
@@ -110,7 +110,7 @@
         .category-item {
             margin-bottom: 0.5rem;
         }
-        /* 父分类样式（带展开折叠） */
+        /* 父分类样式 */
         .parent-category > a {
             display: flex;
             justify-content: space-between;
@@ -270,25 +270,25 @@
 
     <!-- 主布局 -->
     <div class="main-layout">
-        <!-- 左侧分类栏 - 核心修改：Screws添加子分项 -->
+        <!-- 左侧分类栏 - 修改子分项文本：mm→Φ -->
         <div class="category-sidebar">
             <h2>orthropedic stock item</h2>
             <ul class="category-list">
                 <li class="category-item">
                     <a href="#" class="active" data-filter="all">All Items</a>
                 </li>
-                <!-- Screws父分类：带展开折叠子菜单 -->
+                <!-- Screws父分类：子分项mm→Φ -->
                 <li class="category-item parent-category" id="screwsParent">
                     <a href="#" data-filter="screws">Screws</a>
                     <ul class="sub-category-list" id="screwsSubList">
                         <li class="sub-category-item">
-                            <a href="#" data-filter="2.4mm cortex screw">2.4mm cortex screw</a>
+                            <a href="#" data-filter="2.4Φ cortex screw">2.4Φ cortex screw</a>
                         </li>
                         <li class="sub-category-item">
-                            <a href="#" data-filter="2.4mm locking screw">2.4mm locking screw</a>
+                            <a href="#" data-filter="2.4Φ locking screw">2.4Φ locking screw</a>
                         </li>
                         <li class="sub-category-item">
-                            <a href="#" data-filter="2.4mm VA locking screw">2.4mm VA locking screw</a>
+                            <a href="#" data-filter="2.4Φ VA locking screw">2.4Φ VA locking screw</a>
                         </li>
                     </ul>
                 </li>
@@ -348,12 +348,11 @@
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
-        // 库存数据：添加子类型相关的spec，匹配子分项
+        // 库存数据：1. 删除SC-004项目  2. 所有2.4mm→2.4Φ
         let inventoryData = JSON.parse(localStorage.getItem('inventoryData')) || [
-            { id: 'SC-001', type: 'Screws', spec: '2.4mm cortex screw', stock: 500, status: '有庫存', note: '常用型號' },
-            { id: 'SC-002', type: 'Screws', spec: '2.4mm locking screw', stock: 80, status: '庫存偏低', note: '需補貨' },
-            { id: 'SC-003', type: 'Screws', spec: '2.4mm VA locking screw', stock: 120, status: '有庫存', note: '骨科專用' },
-            { id: 'SC-004', type: 'Screws', spec: '3.0mm cortex screw', stock: 0, status: '無庫存', note: '已停產' },
+            { id: 'SC-001', type: 'Screws', spec: '2.4Φ cortex screw', stock: 500, status: '有庫存', note: '常用型號' },
+            { id: 'SC-002', type: 'Screws', spec: '2.4Φ locking screw', stock: 80, status: '庫存偏低', note: '需補貨' },
+            { id: 'SC-003', type: 'Screws', spec: '2.4Φ VA locking screw', stock: 120, status: '有庫存', note: '骨科專用' },
             { id: 'PL-001', type: 'Plate', spec: '100×50×2', stock: 30, status: '有庫存', note: '不鏽鋼材質' },
             { id: 'PK-001', type: 'Pins & K-wires', spec: 'Φ2×150', stock: 150, status: '有庫存', note: '骨科專用' },
             { id: 'PK-002', type: 'Pins & K-wires', spec: 'Φ1.5×120', stock: 50, status: '庫存偏低', note: '需補貨' }
@@ -400,7 +399,7 @@
             });
         }
 
-        // 核心：分类筛选逻辑（支持父分类和子分类）
+        // 核心：分类筛选逻辑
         function handleFilter(filterValue) {
             // 移除所有active类
             allLinks.forEach(link => link.classList.remove('active'));
