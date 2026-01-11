@@ -86,7 +86,7 @@
             gap: 2rem;
         }
 
-        /* 左侧分类栏 - 简化：只保留All Items和Cortex Screw */
+        /* 左侧分类栏 */
         .category-sidebar {
             width: 250px;
             background-color: white;
@@ -174,7 +174,7 @@
             border-left: 3px solid #f8c929;
         }
 
-        /* 库存更改记录表格样式（All Items显示） */
+        /* 库存更改记录表格样式 */
         .change-record-table {
             width: 100%;
             border-collapse: collapse;
@@ -201,7 +201,7 @@
             font-weight: bold;
         }
 
-        /* 2.4Φ cortex screw 专属表格样式 */
+        /* 2.4Φ cortex screw 表格样式 */
         .cortex-table {
             width: 100%;
             border-collapse: collapse;
@@ -234,7 +234,7 @@
             font-weight: bold;
         }
 
-        /* 容器显示隐藏控制 */
+        /* 容器显示隐藏 */
         .content-container {
             display: none;
         }
@@ -268,7 +268,6 @@
     </style>
 </head>
 <body>
-    <!-- 导航栏 -->
     <nav>
         <div class="nav-container">
             <div class="logo">TKOHscrewinventory</div>
@@ -280,9 +279,7 @@
         </div>
     </nav>
 
-    <!-- 主布局 -->
     <div class="main-layout">
-        <!-- 左侧分类栏：只保留All Items和2.4Φ cortex screw -->
         <div class="category-sidebar">
             <h2>orthropedic stock item</h2>
             <ul class="category-list">
@@ -295,11 +292,9 @@
             </ul>
         </div>
 
-        <!-- 右侧内容区域 -->
         <div class="table-container">
             <h2>Item stock</h2>
 
-            <!-- 1. All Items 内容：库存紧张+更改记录 -->
             <div id="all-container" class="content-container active">
                 <div class="hospital-section">
                     <div class="stock-alert">
@@ -324,7 +319,6 @@
                 </table>
             </div>
 
-            <!-- 2. 2.4Φ cortex screw 专属表格 -->
             <div id="cortex-container" class="content-container">
                 <h3>2.4Φ cortex screw 庫存表</h3>
                 <table class="cortex-table">
@@ -343,7 +337,7 @@
     </div>
 
     <script>
-        // 实时更新日期时间函数
+        // 实时日期时间
         function updateDateTime() {
             const now = new Date();
             const day = String(now.getDate()).padStart(2, '0');
@@ -352,182 +346,103 @@
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
-            const datetimeStr = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-            document.getElementById('datetimeDisplay').textContent = datetimeStr;
+            document.getElementById('datetimeDisplay').textContent = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
         }
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
-        // ========== 核心数据定义 ==========
-        // 1. Length列表规则：6-14mm每1mm，16-32mm每2mm
+        // ========== 核心数据 ==========
         const lengthList = [];
         for (let i = 6; i <= 14; i++) lengthList.push(i);
         for (let i = 16; i <= 32; i += 2) lengthList.push(i);
 
-        // 2. 初始化2.4Φ cortex screw数据（从localStorage读取，无则生成空库存）
-        let cortexData = JSON.parse(localStorage.getItem('cortexData')) || lengthList.map(len => {
-            return {
-                catNo: `401.5${String(len).padStart(2, '0')}`,
-                length: len,
-                stock: 0, // 无预设库存，初始为0
-                status: '無庫存'
-            };
-        });
-
-        // 3. 库存更改记录（最多5条）
+        // 初始化数据（从localStorage读取）
+        let cortexData = JSON.parse(localStorage.getItem('cortexData')) || lengthList.map(len => ({
+            catNo: `401.5${String(len).padStart(2, '0')}`,
+            length: len,
+            stock: 0,
+            status: '無庫存'
+        }));
         let changeRecords = JSON.parse(localStorage.getItem('changeRecords')) || [];
 
-        // ========== 工具函数 ==========
-        // 更新库存状态
+        // 工具函数
         function updateStatus(item) {
-            if (item.stock <= 0) {
-                item.status = '無庫存';
-            } else if (item.stock < 50) {
-                item.status = '庫存偏低';
-            } else {
-                item.status = '有庫存';
-            }
+            if (item.stock <= 0) item.status = '無庫存';
+            else if (item.stock < 50) item.status = '庫存偏低';
+            else item.status = '有庫存';
             return item;
         }
-
-        // 保存数据到localStorage
         function saveData() {
             localStorage.setItem('cortexData', JSON.stringify(cortexData));
             localStorage.setItem('changeRecords', JSON.stringify(changeRecords));
         }
 
         // ========== 渲染函数 ==========
-        // 1. 渲染库存紧张提示（仅cortex数据）
         function renderAlertList() {
-            const lowStockItems = cortexData.filter(item => item.status === '庫存偏低' || item.status === '無庫存');
-            const alertItemList = document.getElementById('alertItemList');
-            alertItemList.innerHTML = '';
-            
-            if (lowStockItems.length === 0) {
-                alertItemList.innerHTML = '<div class="alert-item">暫無庫存緊張項目</div>';
-                return;
-            }
-            
-            lowStockItems.forEach(item => {
-                const alertItem = document.createElement('div');
-                alertItem.className = 'alert-item';
-                alertItem.textContent = `Cat No. ${item.catNo} (${item.length}mm) - 庫存${item.stock}，${item.status}`;
-                alertItemList.appendChild(alertItem);
-            });
+            const lowStock = cortexData.filter(item => item.status === '庫存偏低' || item.status === '無庫存');
+            const alertList = document.getElementById('alertItemList');
+            alertList.innerHTML = lowStock.length === 0 
+                ? '<div class="alert-item">暫無庫存緊張項目</div>'
+                : lowStock.map(item => `<div class="alert-item">Cat No. ${item.catNo} (${item.length}mm) - 庫存${item.stock}，${item.status}</div>`).join('');
         }
-
-        // 2. 渲染更改记录表格
         function renderChangeRecords() {
-            const tableBody = document.getElementById('changeRecordTableBody');
-            tableBody.innerHTML = '';
-            
-            if (changeRecords.length === 0) {
-                tableBody.innerHTML = '<td colspan="7" style="text-align: center; color: #666;">暫無庫存更改記錄</td>';
-                return;
-            }
-            
-            changeRecords.reverse().forEach(record => {
-                const tr = document.createElement('tr');
-                const operationClass = record.operation === '加庫存' ? 'operation-add' : 'operation-sub';
-                tr.innerHTML = `
-                    <td>${record.time}</td>
-                    <td>${record.catNo}</td>
-                    <td>2.4Φ cortex screw</td>
-                    <td>${record.length}mm</td>
-                    <td>${record.beforeStock}</td>
-                    <td>${record.afterStock}</td>
-                    <td class="${operationClass}">${record.operation}</td>
-                `;
-                tableBody.appendChild(tr);
-            });
+            const tbody = document.getElementById('changeRecordTableBody');
+            tbody.innerHTML = changeRecords.length === 0
+                ? '<td colspan="7" style="text-align:center;color:#666;">暫無庫存更改記錄</td>'
+                : changeRecords.reverse().map(record => `
+                    <tr>
+                        <td>${record.time}</td>
+                        <td>${record.catNo}</td>
+                        <td>2.4Φ cortex screw</td>
+                        <td>${record.length}mm</td>
+                        <td>${record.beforeStock}</td>
+                        <td>${record.afterStock}</td>
+                        <td class="${record.operation === '加庫存' ? 'operation-add' : 'operation-sub'}">${record.operation}</td>
+                    </tr>
+                `).join('');
             changeRecords.reverse();
         }
-
-        // 3. 渲染cortex库存表格
         function renderCortexTable() {
-            const tableBody = document.getElementById('cortex-table-body');
-            tableBody.innerHTML = '';
-            
-            cortexData.forEach(item => {
-                const tr = document.createElement('tr');
-                let statusClass = 'status-in';
-                if (item.status === '庫存偏低') statusClass = 'status-low';
-                else if (item.status === '無庫存') statusClass = 'status-out';
-                
-                tr.innerHTML = `
-                    <td>${item.catNo}</td>
-                    <td>${item.length}</td>
-                    <td>${item.stock}</td>
-                    <td class="${statusClass}">${item.status}</td>
+            const tbody = document.getElementById('cortex-table-body');
+            tbody.innerHTML = cortexData.map(item => {
+                const statusClass = item.status === '有庫存' ? 'status-in' : item.status === '庫存偏低' ? 'status-low' : 'status-out';
+                return `
+                    <tr>
+                        <td>${item.catNo}</td>
+                        <td>${item.length}</td>
+                        <td>${item.stock}</td>
+                        <td class="${statusClass}">${item.status}</td>
+                    </tr>
                 `;
-                tableBody.appendChild(tr);
-            });
+            }).join('');
         }
 
-        // ========== 核心切换逻辑 ==========
+        // ========== 切换逻辑 ==========
         function switchContent(filterValue) {
-            // 隐藏所有容器
-            document.querySelectorAll('.content-container').forEach(container => {
-                container.classList.remove('active');
-            });
-            // 移除所有链接active类
-            document.querySelectorAll('.category-item a').forEach(link => {
-                link.classList.remove('active');
-            });
-            // 当前链接高亮
+            document.querySelectorAll('.content-container').forEach(ctn => ctn.classList.remove('active'));
+            document.querySelectorAll('.category-item a').forEach(link => link.classList.remove('active'));
             event.target.classList.add('active');
-
-            // 切换对应内容
+            
             if (filterValue === 'all') {
                 document.getElementById('all-container').classList.add('active');
                 renderAlertList();
                 renderChangeRecords();
-            } else if (filterValue === 'cortex') {
+            } else {
                 document.getElementById('cortex-container').classList.add('active');
                 renderCortexTable();
             }
         }
 
-        // ========== 全局函数：供item-change页面调用 ==========
-        // 1. 加减库存
-        window.updateCortexStock = function(catNo, adjustNum) {
-            const targetItem = cortexData.find(item => item.catNo === catNo);
-            if (!targetItem) return false;
-
-            const beforeStock = targetItem.stock;
-            targetItem.stock += adjustNum;
-            if (targetItem.stock < 0) targetItem.stock = 0; // 防止负库存
-
-            // 更新状态
-            updateStatus(targetItem);
-            // 保存数据
-            saveData();
-            // 渲染更新
-            renderCortexTable();
-            renderAlertList();
-
-            return { beforeStock, afterStock: targetItem.stock, length: targetItem.length };
-        };
-
-        // 2. 添加更改记录
-        window.addCortexRecord = function(catNo, beforeStock, afterStock, length) {
-            const now = new Date();
-            const timeStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-
-            const newRecord = {
-                time: timeStr,
-                catNo: catNo,
-                length: length,
-                beforeStock: beforeStock,
-                afterStock: afterStock,
-                operation: afterStock > beforeStock ? '加庫存' : '減庫存'
-            };
-
-            if (changeRecords.length >= 5) changeRecords.shift();
-            changeRecords.push(newRecord);
-            saveData();
-            renderChangeRecords();
-        };
+        // ========== 关键修复：监听localStorage变化，自动刷新 ==========
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'cortexData' || e.key === 'changeRecords') {
+                cortexData = JSON.parse(localStorage.getItem('cortexData')) || cortexData;
+                changeRecords = JSON.parse(localStorage.getItem('changeRecords')) || changeRecords;
+                renderAlertList();
+                renderChangeRecords();
+                renderCortexTable();
+            }
+        });
 
         // ========== 事件绑定 ==========
         document.querySelectorAll('.category-item a').forEach(link => {
@@ -537,11 +452,12 @@
             });
         });
 
-        // ========== 页面初始化 ==========
+        // 页面初始化
         window.onload = () => {
             renderAlertList();
             renderChangeRecords();
             renderCortexTable();
+            saveData(); // 确保数据存入localStorage
         };
     </script>
 </body>
