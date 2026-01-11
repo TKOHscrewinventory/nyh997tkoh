@@ -186,23 +186,23 @@
             color: #e74c3c;
             font-weight: bold;
         }
-        .cortex-table {
+        .screw-table {
             width: 100%;
             border-collapse: collapse;
         }
-        .cortex-table th, .cortex-table td {
+        .screw-table th, .screw-table td {
             padding: 0.8rem 1rem;
             text-align: left;
             border: 1px solid #ddd;
         }
-        .cortex-table th {
+        .screw-table th {
             background-color: #2c3e50;
             color: white;
         }
-        .cortex-table tr:nth-child(even) {
+        .screw-table tr:nth-child(even) {
             background-color: #f8f9fa;
         }
-        .cortex-table tr:hover {
+        .screw-table tr:hover {
             background-color: #e9ecef;
         }
         .status-in {
@@ -240,7 +240,7 @@
                 width: 100%;
                 justify-content: center;
             }
-            .cortex-table th, .cortex-table td {
+            .screw-table th, .screw-table td {
                 padding: 0.6rem 0.4rem;
                 font-size: 0.9rem;
             }
@@ -269,12 +269,19 @@
                 <li class="category-item">
                     <a href="#" data-filter="cortex">2.4Φ cortex screw</a>
                 </li>
+                <li class="category-item">
+                    <a href="#" data-filter="locking">2.4Φ locking screw</a>
+                </li>
+                <li class="category-item">
+                    <a href="#" data-filter="valocking">2.4Φ VA locking screw</a>
+                </li>
             </ul>
         </div>
 
         <div class="table-container">
             <h2>Item stock</h2>
 
+            <!-- All Items 容器 -->
             <div id="all-container" class="content-container active">
                 <div class="hospital-section">
                     <div class="stock-alert">
@@ -299,9 +306,10 @@
                 </table>
             </div>
 
+            <!-- Cortex Screw 容器 -->
             <div id="cortex-container" class="content-container">
                 <h3>2.4Φ cortex screw 庫存表</h3>
-                <table class="cortex-table">
+                <table class="screw-table">
                     <thead>
                         <tr>
                             <th>Cat No.</th>
@@ -311,6 +319,38 @@
                         </tr>
                     </thead>
                     <tbody id="cortex-table-body"></tbody>
+                </table>
+            </div>
+
+            <!-- Locking Screw 容器 -->
+            <div id="locking-container" class="content-container">
+                <h3>2.4Φ locking screw 庫存表</h3>
+                <table class="screw-table">
+                    <thead>
+                        <tr>
+                            <th>Cat No.</th>
+                            <th>Length (mm)</th>
+                            <th>stock balance</th>
+                            <th>status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="locking-table-body"></tbody>
+                </table>
+            </div>
+
+            <!-- VA Locking Screw 容器 -->
+            <div id="valocking-container" class="content-container">
+                <h3>2.4Φ VA locking screw 庫存表</h3>
+                <table class="screw-table">
+                    <thead>
+                        <tr>
+                            <th>Cat No.</th>
+                            <th>Length (mm)</th>
+                            <th>stock balance</th>
+                            <th>status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="valocking-table-body"></tbody>
                 </table>
             </div>
         </div>
@@ -326,27 +366,87 @@
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
-        // 核心数据
+        // ========== 核心配置 ==========
+        // 长度规则：6-14mm(步长1)、16-32mm(步长2)
         const lengthList = [];
         for (let i = 6; i <= 14; i++) lengthList.push(i);
         for (let i = 16; i <= 32; i += 2) lengthList.push(i);
 
-        // 初始化数据
-        let cortexData = JSON.parse(localStorage.getItem('cortexData')) || lengthList.map(len => ({
-            catNo: `401.5${String(len).padStart(2, '0')}`,
-            length: len,
-            stock: 0,
-            status: '無庫存'
-        }));
+        // 产品类型配置（方便后续扩展）
+        const productTypes = [
+            { key: 'cortex', name: '2.4Φ cortex screw' },
+            { key: 'locking', name: '2.4Φ locking screw' },
+            { key: 'valocking', name: '2.4Φ VA locking screw' }
+        ];
+
+        // ========== 数据初始化 ==========
+        // 初始化单类螺丝数据
+        function initScrewData(typeKey, typeName) {
+            return lengthList.map(len => ({
+                catNo: `401.5${String(len).padStart(2, '0')}`,
+                length: len,
+                stock: 0,
+                status: '無庫存',
+                typeKey: typeKey,
+                typeName: typeName
+            }));
+        }
+
+        // 读取/初始化所有螺丝数据
+        let allScrewData = {};
+        productTypes.forEach(type => {
+            const storedData = JSON.parse(localStorage.getItem(`${type.key}Data`));
+            allScrewData[type.key] = storedData || initScrewData(type.key, type.name);
+        });
+
+        // 读取/初始化更改记录
         let changeRecords = JSON.parse(localStorage.getItem('changeRecords')) || [];
 
+        // ========== 工具函数 ==========
+        // 更新库存状态
+        function updateStatus(item) {
+            if (item.stock <= 0) item.status = '無庫存';
+            else if (item.stock < 50) item.status = '庫存偏低';
+            else item.status = '有庫存';
+            return item;
+        }
+
+        // 保存单类数据到本地
+        function saveScrewData(typeKey) {
+            localStorage.setItem(`${typeKey}Data`, JSON.stringify(allScrewData[typeKey]));
+        }
+
+        // 保存更改记录
+        function saveChangeRecords() {
+            localStorage.setItem('changeRecords', JSON.stringify(changeRecords));
+        }
+
+        // 获取所有库存偏低/无库存的项目
+        function getAllLowStockItems() {
+            let lowStock = [];
+            productTypes.forEach(type => {
+                lowStock = lowStock.concat(allScrewData[type.key].filter(item => item.status === '庫存偏低' || item.status === '無庫存'));
+            });
+            return lowStock;
+        }
+
+        // 获取所有Cat No.列表（用于item change页面搜索）
+        function getAllCatNos() {
+            let catNos = [];
+            productTypes.forEach(type => {
+                catNos = catNos.concat(allScrewData[type.key].map(item => item.catNo));
+            });
+            return catNos;
+        }
+
+        // ========== 渲染函数 ==========
         // 渲染库存紧张提示
         function renderAlertList() {
-            const lowStock = cortexData.filter(item => item.status === '庫存偏低' || item.status === '無庫存');
+            const lowStockItems = getAllLowStockItems();
             const alertList = document.getElementById('alertItemList');
-            alertList.innerHTML = lowStock.length === 0 
+            alertList.innerHTML = lowStockItems.length === 0 
                 ? '<div class="alert-item">暫無庫存緊張項目</div>'
-                : lowStock.map(item => `<div class="alert-item">Cat No. ${item.catNo} (${item.length}mm) - 庫存${item.stock}，${item.status}</div>`).join('');
+                : lowStockItems.map(item => `<div class="alert-item">Cat No. ${item.catNo} (${item.typeName} ${item.length}mm) - 庫存${item.stock}，${item.status}</div>`).join('');
         }
 
         // 渲染更改记录
@@ -358,7 +458,7 @@
                     <tr>
                         <td>${record.time}</td>
                         <td>${record.catNo}</td>
-                        <td>2.4Φ cortex screw</td>
+                        <td>${record.typeName}</td>
                         <td>${record.length}mm</td>
                         <td>${record.beforeStock}</td>
                         <td>${record.afterStock}</td>
@@ -368,10 +468,10 @@
             changeRecords.reverse();
         }
 
-        // 渲染库存表格
-        function renderCortexTable() {
-            const tbody = document.getElementById('cortex-table-body');
-            tbody.innerHTML = cortexData.map(item => {
+        // 渲染单类螺丝表格
+        function renderScrewTable(typeKey) {
+            const tbody = document.getElementById(`${typeKey}-table-body`);
+            tbody.innerHTML = allScrewData[typeKey].map(item => {
                 const statusClass = item.status === '有庫存' ? 'status-in' : item.status === '庫存偏低' ? 'status-low' : 'status-out';
                 return `
                     <tr>
@@ -384,32 +484,52 @@
             }).join('');
         }
 
-        // 切换分类
+        // ========== 切换分类逻辑 ==========
         function switchContent(filterValue) {
+            // 隐藏所有容器
             document.querySelectorAll('.content-container').forEach(ctn => ctn.classList.remove('active'));
+            // 移除所有链接active类
             document.querySelectorAll('.category-item a').forEach(link => link.classList.remove('active'));
+            // 当前链接高亮
             event.target.classList.add('active');
-            
+
+            // 切换对应内容
             if (filterValue === 'all') {
                 document.getElementById('all-container').classList.add('active');
                 renderAlertList();
                 renderChangeRecords();
             } else {
-                document.getElementById('cortex-container').classList.add('active');
-                renderCortexTable();
+                document.getElementById(`${filterValue}-container`).classList.add('active');
+                renderScrewTable(filterValue);
             }
         }
 
-        // 监听localStorage变化，自动刷新
+        // ========== 监听localStorage变化（同步item change页面修改） ==========
         window.addEventListener('storage', () => {
-            cortexData = JSON.parse(localStorage.getItem('cortexData')) || cortexData;
+            // 重新读取所有数据
+            productTypes.forEach(type => {
+                allScrewData[type.key] = JSON.parse(localStorage.getItem(`${type.key}Data`)) || allScrewData[type.key];
+            });
             changeRecords = JSON.parse(localStorage.getItem('changeRecords')) || changeRecords;
+            
+            // 重新渲染
             renderAlertList();
             renderChangeRecords();
-            renderCortexTable();
+            productTypes.forEach(type => renderScrewTable(type.key));
         });
 
-        // 事件绑定
+        // ========== 暴露全局函数（供后续扩展） ==========
+        window.getAllCatNos = getAllCatNos; // 提供所有Cat No.列表
+        window.getScrewItemByCatNo = (catNo) => {
+            // 根据Cat No.查找对应项目
+            for (const typeKey in allScrewData) {
+                const item = allScrewData[typeKey].find(i => i.catNo === catNo);
+                if (item) return { item, typeKey };
+            }
+            return null;
+        };
+
+        // ========== 事件绑定 ==========
         document.querySelectorAll('.category-item a').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -417,12 +537,16 @@
             });
         });
 
-        // 页面初始化
+        // ========== 页面初始化 ==========
         window.onload = () => {
+            // 初始化所有表格
+            productTypes.forEach(type => renderScrewTable(type.key));
+            // 初始化All Items
             renderAlertList();
             renderChangeRecords();
-            renderCortexTable();
-            localStorage.setItem('cortexData', JSON.stringify(cortexData)); // 确保数据存在
+            // 保存初始数据到本地
+            productTypes.forEach(type => saveScrewData(type.key));
+            saveChangeRecords();
         };
     </script>
 </body>
