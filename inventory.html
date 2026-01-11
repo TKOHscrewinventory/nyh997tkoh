@@ -40,6 +40,23 @@
             font-size: 1.5rem;
             font-weight: bold;
         }
+        /* 修改处：新增导航按钮容器样式，适配多个按钮 */
+        .nav-buttons {
+            display: flex;
+            gap: 1rem; /* 按钮之间的间距 */
+        }
+        .item-change-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .item-change-btn:hover {
+            background-color: #2980b9;
+        }
         .logout-btn {
             background-color: #e74c3c;
             color: white;
@@ -73,6 +90,7 @@
             position: sticky;
             top: 80px;
         }
+        /* 修改处：左侧分类标题改为 orthropedic stock item */
         .category-sidebar h2 {
             color: #2c3e50;
             font-size: 1.3rem;
@@ -167,16 +185,20 @@
     <nav>
         <div class="nav-container">
             <div class="logo">TKOHscrewinventory</div>
-            <!-- 登出按钮：返回登录页 -->
-            <button class="logout-btn" onclick="window.location.href='index.html'">登出</button>
+            <!-- 修改处：新增导航按钮容器，包含item change和登出按钮 -->
+            <div class="nav-buttons">
+                <button class="item-change-btn" onclick="window.location.href='item-change.html'">item change</button>
+                <button class="logout-btn" onclick="window.location.href='index.html'">登出</button>
+            </div>
         </div>
     </nav>
 
     <!-- 主布局 -->
     <div class="main-layout">
-        <!-- 左侧螺丝分类栏 -->
+        <!-- 左侧分类栏 -->
         <div class="category-sidebar">
-            <h2>螺絲分類</h2>
+            <!-- 修改处：标题改为 orthropedic stock item -->
+            <h2>orthropedic stock item</h2>
             <ul class="category-list">
                 <li class="category-item"><a href="#" class="active">全部螺絲</a></li>
                 <li class="category-item"><a href="#">十字槽螺絲</a></li>
