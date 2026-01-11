@@ -114,7 +114,7 @@
             border-color: #3498db;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
-        /* 新增：库存余额按钮容器样式 */
+        /* 库存余额按钮容器样式 */
         .stock-btn-group {
             display: flex;
             gap: 1rem;
@@ -175,26 +175,19 @@
             
             <!-- 库存项目修改表单 -->
             <form id="item-change-form">
+                <!-- 修改点1：Item ID 改为 Cat No. -->
                 <div class="form-group">
-                    <label for="item-id">項目編號 (Item ID)</label>
+                    <label for="item-id">Cat No.</label>
                     <input type="text" id="item-id" placeholder="輸入項目編號（如 SC-001）" required>
                 </div>
-                <div class="form-group">
-                    <label for="item-type">項目類型 (Item Type)</label>
-                    <select id="item-type" required>
-                        <option value="">請選擇類型 (Select Type)</option>
-                        <option value="十字槽螺絲">十字槽螺絲 (Cross Slot Screw)</option>
-                        <option value="內六角螺絲">內六角螺絲 (Hexagon Socket Screw)</option>
-                        <option value="一字槽螺絲">一字槽螺絲 (Slotted Screw)</option>
-                        <option value="自攻螺絲">自攻螺絲 (Self-Tapping Screw)</option>
-                        <option value="緊固件配件">緊固件配件 (Fastener Accessories)</option>
-                    </select>
-                </div>
-                <!-- 修改：库存数量 → 库存余额 -->
+
+                <!-- 修改点2：删除 item type 整个输入区域 -->
+
+                <!-- 库存余额区域 -->
                 <div class="form-group">
                     <label for="item-stock">stock balance（庫存餘額）</label>
                     <input type="number" id="item-stock" placeholder="輸入調整數量（如 50、-20）" min="0" required>
-                    <!-- 新增：+/-按钮 -->
+                    <!-- +/-按钮 -->
                     <div class="stock-btn-group">
                         <button type="button" class="stock-btn add-btn" id="add-stock-btn">+</button>
                         <button type="button" class="stock-btn minus-btn" id="minus-stock-btn">-</button>
@@ -218,9 +211,8 @@
             { id: 'SC-004', type: '一字槽螺絲', spec: 'M2 × 8', stock: 1200, status: '有庫存', note: '庫存充足' }
         ];
 
-        // 获取DOM元素
+        // 获取DOM元素（删除了itemTypeInput）
         const itemIdInput = document.getElementById('item-id');
-        const itemTypeInput = document.getElementById('item-type');
         const itemStockInput = document.getElementById('item-stock');
         const itemNoteInput = document.getElementById('item-note');
         const addStockBtn = document.getElementById('add-stock-btn');
@@ -232,13 +224,13 @@
             const itemId = itemIdInput.value.trim();
             const adjustNum = parseInt(itemStockInput.value) || 0;
             if (!itemId || adjustNum <= 0) {
-                alert('請輸入有效的項目編號和調整數量（數量需大於0）！');
+                alert('請輸入有效的Cat No.和調整數量（數量需大於0）！');
                 return;
             }
             // 查找对应项目
             const targetItem = inventoryData.find(item => item.id === itemId);
             if (!targetItem) {
-                alert(`未找到項目編號 ${itemId}，請確認編號正確！`);
+                alert(`未找到Cat No. ${itemId}，請確認編號正確！`);
                 return;
             }
             // 增加库存
@@ -247,7 +239,7 @@
             updateStockStatus(targetItem);
             // 保存到localStorage
             localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
-            alert(`項目 ${itemId} 庫存已增加 ${adjustNum}，當前庫存：${targetItem.stock}`);
+            alert(`Cat No. ${itemId} 庫存已增加 ${adjustNum}，當前庫存：${targetItem.stock}`);
             // 清空输入框
             itemStockInput.value = '';
         });
@@ -257,13 +249,13 @@
             const itemId = itemIdInput.value.trim();
             const adjustNum = parseInt(itemStockInput.value) || 0;
             if (!itemId || adjustNum <= 0) {
-                alert('請輸入有效的項目編號和調整數量（數量需大於0）！');
+                alert('請輸入有效的Cat No.和調整數量（數量需大於0）！');
                 return;
             }
             // 查找对应项目
             const targetItem = inventoryData.find(item => item.id === itemId);
             if (!targetItem) {
-                alert(`未找到項目編號 ${itemId}，請確認編號正確！`);
+                alert(`未找到Cat No. ${itemId}，請確認編號正確！`);
                 return;
             }
             // 防止库存为负
@@ -277,37 +269,35 @@
             updateStockStatus(targetItem);
             // 保存到localStorage
             localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
-            alert(`項目 ${itemId} 庫存已減少 ${adjustNum}，當前庫存：${targetItem.stock}`);
+            alert(`Cat No. ${itemId} 庫存已減少 ${adjustNum}，當前庫存：${targetItem.stock}`);
             // 清空输入框
             itemStockInput.value = '';
         });
 
-        // 保存修改按钮逻辑（批量修改）
+        // 保存修改按钮逻辑（修改点3：删除itemType相关校验和赋值）
         saveStockBtn.addEventListener('click', () => {
             const itemId = itemIdInput.value.trim();
-            const itemType = itemTypeInput.value;
             const itemStock = parseInt(itemStockInput.value) || 0;
             const itemNote = itemNoteInput.value.trim();
             
-            if (!itemId || !itemType) {
-                alert('請填寫項目編號和類型！');
+            if (!itemId) { // 只校验Cat No.
+                alert('請填寫Cat No.！');
                 return;
             }
 
             // 查找对应项目
             const targetItem = inventoryData.find(item => item.id === itemId);
             if (targetItem) {
-                // 更新信息
-                targetItem.type = itemType;
+                // 更新信息（仅更新库存和备注，保留原有类型）
                 targetItem.stock = itemStock;
                 targetItem.note = itemNote || targetItem.note;
                 // 更新库存状态
                 updateStockStatus(targetItem);
             } else {
-                // 新增项目
+                // 新增项目（类型默认空，不影响库存页显示）
                 const newItem = {
                     id: itemId,
-                    type: itemType,
+                    type: '未分類', // 默认类型
                     spec: '未知規格',
                     stock: itemStock,
                     status: updateStockStatus({ stock: itemStock }),
