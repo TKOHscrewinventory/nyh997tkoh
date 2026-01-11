@@ -40,7 +40,7 @@
             font-size: 1.5rem;
             font-weight: bold;
         }
-        /* 修改处：新增导航按钮容器样式，适配多个按钮 */
+        /* 导航按钮容器样式，适配多个按钮 */
         .nav-buttons {
             display: flex;
             gap: 1rem; /* 按钮之间的间距 */
@@ -90,7 +90,7 @@
             position: sticky;
             top: 80px;
         }
-        /* 修改处：左侧分类标题改为 orthropedic stock item */
+        /* 左侧分类标题改为 orthropedic stock item */
         .category-sidebar h2 {
             color: #2c3e50;
             font-size: 1.3rem;
@@ -160,7 +160,7 @@
             color: white;
         }
         .status-low {
-            background-color: #f39c12;
+            background-color: #f8c929;
             color: white;
         }
         .status-out {
@@ -185,7 +185,7 @@
     <nav>
         <div class="nav-container">
             <div class="logo">TKOHscrewinventory</div>
-            <!-- 修改处：新增导航按钮容器，包含item change和登出按钮 -->
+            <!-- 导航按钮容器，包含item change和登出按钮 -->
             <div class="nav-buttons">
                 <button class="item-change-btn" onclick="window.location.href='item-change.html'">item change</button>
                 <button class="logout-btn" onclick="window.location.href='index.html'">登出</button>
@@ -197,15 +197,15 @@
     <div class="main-layout">
         <!-- 左侧分类栏 -->
         <div class="category-sidebar">
-            <!-- 修改处：标题改为 orthropedic stock item -->
+            <!-- 标题改为 orthropedic stock item -->
             <h2>orthropedic stock item</h2>
             <ul class="category-list">
-                <li class="category-item"><a href="#" class="active">全部螺絲</a></li>
-                <li class="category-item"><a href="#">十字槽螺絲</a></li>
-                <li class="category-item"><a href="#">內六角螺絲</a></li>
-                <li class="category-item"><a href="#">一字槽螺絲</a></li>
-                <li class="category-item"><a href="#">自攻螺絲</a></li>
-                <li class="category-item"><a href="#">緊固件配件</a></li>
+                <li class="category-item"><a href="#" class="active">全部螺絲 (All Screws)</a></li>
+                <li class="category-item"><a href="#">十字槽螺絲 (Cross Slot)</a></li>
+                <li class="category-item"><a href="#">內六角螺絲 (Hex Socket)</a></li>
+                <li class="category-item"><a href="#">一字槽螺絲 (Slotted)</a></li>
+                <li class="category-item"><a href="#">自攻螺絲 (Self-Tapping)</a></li>
+                <li class="category-item"><a href="#">緊固件配件 (Accessories)</a></li>
             </ul>
         </div>
 
@@ -215,62 +215,97 @@
             <table class="inventory-table">
                 <thead>
                     <tr>
-                        <th>螺絲型號</th>
-                        <th>螺絲類型</th>
-                        <th>規格 (mm)</th>
-                        <th>庫存量</th>
-                        <th>庫存狀態</th>
-                        <th>備註</th>
+                        <th>螺絲型號 (Screw ID)</th>
+                        <th>螺絲類型 (Type)</th>
+                        <th>規格 (Spec) (mm)</th>
+                        <th>stock balance（庫存餘額）</th>
+                        <th>庫存狀態 (Status)</th>
+                        <th>備註 (Remarks)</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>SC-001</td>
-                        <td>十字槽螺絲</td>
-                        <td>M3 × 10</td>
-                        <td>500</td>
-                        <td><span class="stock-status status-in">有庫存</span></td>
-                        <td>常用型號</td>
-                    </tr>
-                    <tr>
-                        <td>SC-002</td>
-                        <td>內六角螺絲</td>
-                        <td>M5 × 20</td>
-                        <td>80</td>
-                        <td><span class="stock-status status-low">庫存偏低</span></td>
-                        <td>需補貨</td>
-                    </tr>
-                    <tr>
-                        <td>SC-003</td>
-                        <td>自攻螺絲</td>
-                        <td>M4 × 15</td>
-                        <td>0</td>
-                        <td><span class="stock-status status-out">無庫存</span></td>
-                        <td>已停產</td>
-                    </tr>
-                    <tr>
-                        <td>SC-004</td>
-                        <td>一字槽螺絲</td>
-                        <td>M2 × 8</td>
-                        <td>1200</td>
-                        <td><span class="stock-status status-in">有庫存</span></td>
-                        <td>庫存充足</td>
-                    </tr>
+                <tbody id="inventory-table-body">
+                    <!-- 表格内容由JS动态生成 -->
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
+        // 从localStorage读取库存数据，无则用默认值
+        let inventoryData = JSON.parse(localStorage.getItem('inventoryData')) || [
+            { id: 'SC-001', type: '十字槽螺絲', spec: 'M3 × 10', stock: 500, status: '有庫存', note: '常用型號' },
+            { id: 'SC-002', type: '內六角螺絲', spec: 'M5 × 20', stock: 80, status: '庫存偏低', note: '需補貨' },
+            { id: 'SC-003', type: '自攻螺絲', spec: 'M4 × 15', stock: 0, status: '無庫存', note: '已停產' },
+            { id: 'SC-004', type: '一字槽螺絲', spec: 'M2 × 8', stock: 1200, status: '有庫存', note: '庫存充足' }
+        ];
+
+        // 获取表格主体元素
+        const tableBody = document.getElementById('inventory-table-body');
+
+        // 初始化表格内容
+        function renderInventoryTable() {
+            // 清空原有内容
+            tableBody.innerHTML = '';
+            // 遍历库存数据生成表格行
+            inventoryData.forEach(item => {
+                const tr = document.createElement('tr');
+                // 状态样式类
+                let statusClass = '';
+                if (item.status === '有庫存') statusClass = 'status-in';
+                else if (item.status === '庫存偏低') statusClass = 'status-low';
+                else statusClass = 'status-out';
+                // 表格内容
+                tr.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.type}</td>
+                    <td>${item.spec}</td>
+                    <td>${item.stock}</td>
+                    <td><span class="stock-status ${statusClass}">${item.status}</span></td>
+                    <td>${item.note}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
         // 分类点击高亮逻辑
         const categoryLinks = document.querySelectorAll('.category-item a');
         categoryLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
+                // 移除所有active类
                 categoryLinks.forEach(l => l.classList.remove('active'));
+                // 给当前点击的加active类
                 link.classList.add('active');
+                // 简单分类筛选（可选扩展）
+                const categoryText = link.textContent;
+                if (categoryText.includes('全部')) {
+                    renderInventoryTable(); // 显示全部
+                } else {
+                    // 筛选对应类型
+                    const filteredData = inventoryData.filter(item => 
+                        item.type.includes(categoryText.split('(')[0].trim())
+                    );
+                    // 重新渲染筛选后的表格
+                    tableBody.innerHTML = '';
+                    filteredData.forEach(item => {
+                        const tr = document.createElement('tr');
+                        let statusClass = item.status === '有庫存' ? 'status-in' : item.status === '庫存偏低' ? 'status-low' : 'status-out';
+                        tr.innerHTML = `
+                            <td>${item.id}</td>
+                            <td>${item.type}</td>
+                            <td>${item.spec}</td>
+                            <td>${item.stock}</td>
+                            <td><span class="stock-status ${statusClass}">${item.status}</span></td>
+                            <td>${item.note}</td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                }
             });
         });
+
+        // 页面加载时渲染表格
+        window.onload = renderInventoryTable;
     </script>
 </body>
 </html>
