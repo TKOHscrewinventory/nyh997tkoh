@@ -86,7 +86,7 @@
             gap: 2rem;
         }
 
-        /* 左侧分类栏 - 展开折叠样式 */
+        /* 左侧分类栏 - 简化：只保留All Items和Cortex Screw */
         .category-sidebar {
             width: 250px;
             background-color: white;
@@ -110,37 +110,7 @@
         .category-item {
             margin-bottom: 0.5rem;
         }
-        /* 父分类样式 */
-        .parent-category > a {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .parent-category > a::after {
-            content: "+";
-            font-size: 0.8rem;
-            font-weight: bold;
-            transition: transform 0.3s;
-        }
-        .parent-category.expanded > a::after {
-            content: "-";
-        }
-        /* 子分类样式 */
-        .sub-category-list {
-            list-style: none;
-            margin-left: 1.5rem;
-            margin-top: 0.3rem;
-            margin-bottom: 0.8rem;
-            display: none; /* 默认折叠 */
-        }
-        .parent-category.expanded .sub-category-list {
-            display: block; /* 展开显示 */
-        }
-        .sub-category-item {
-            margin-bottom: 0.5rem;
-        }
-        /* 通用链接样式 */
-        .category-item a, .sub-category-item a {
+        .category-item a {
             text-decoration: none;
             color: #333;
             font-size: 1rem;
@@ -149,8 +119,7 @@
             border-radius: 4px;
             transition: background-color 0.3s;
         }
-        .category-item a:hover, .category-item a.active,
-        .sub-category-item a:hover, .sub-category-item a.active {
+        .category-item a:hover, .category-item a.active {
             background-color: #3498db;
             color: white;
         }
@@ -232,25 +201,24 @@
             font-weight: bold;
         }
 
-        /* 2.4Φ子分类专属表格样式 */
-        .screw-sub-table {
+        /* 2.4Φ cortex screw 专属表格样式 */
+        .cortex-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 2rem;
         }
-        .screw-sub-table th, .screw-sub-table td {
+        .cortex-table th, .cortex-table td {
             padding: 0.8rem 1rem;
             text-align: left;
             border: 1px solid #ddd;
         }
-        .screw-sub-table th {
+        .cortex-table th {
             background-color: #2c3e50;
             color: white;
         }
-        .screw-sub-table tr:nth-child(even) {
+        .cortex-table tr:nth-child(even) {
             background-color: #f8f9fa;
         }
-        .screw-sub-table tr:hover {
+        .cortex-table tr:hover {
             background-color: #e9ecef;
         }
         .status-in {
@@ -292,7 +260,7 @@
                 width: 100%;
                 justify-content: center;
             }
-            .screw-sub-table th, .screw-sub-table td {
+            .cortex-table th, .cortex-table td {
                 padding: 0.6rem 0.4rem;
                 font-size: 0.9rem;
             }
@@ -314,33 +282,15 @@
 
     <!-- 主布局 -->
     <div class="main-layout">
-        <!-- 左侧分类栏 -->
+        <!-- 左侧分类栏：只保留All Items和2.4Φ cortex screw -->
         <div class="category-sidebar">
             <h2>orthropedic stock item</h2>
             <ul class="category-list">
                 <li class="category-item">
                     <a href="#" data-filter="all" class="active">All Items</a>
                 </li>
-                <!-- Screws父分类 -->
-                <li class="category-item parent-category" id="screwsParent">
-                    <a href="#" data-filter="screws">Screws</a>
-                    <ul class="sub-category-list" id="screwsSubList">
-                        <li class="sub-category-item">
-                            <a href="#" data-filter="cortex">2.4Φ cortex screw</a>
-                        </li>
-                        <li class="sub-category-item">
-                            <a href="#" data-filter="locking">2.4Φ locking screw</a>
-                        </li>
-                        <li class="sub-category-item">
-                            <a href="#" data-filter="valocking">2.4Φ VA locking screw</a>
-                        </li>
-                    </ul>
-                </li>
                 <li class="category-item">
-                    <a href="#" data-filter="Plate">Plate</a>
-                </li>
-                <li class="category-item">
-                    <a href="#" data-filter="Pins & K-wires">Pins & K-wires</a>
+                    <a href="#" data-filter="cortex">2.4Φ cortex screw</a>
                 </li>
             </ul>
         </div>
@@ -351,14 +301,12 @@
 
             <!-- 1. All Items 内容：库存紧张+更改记录 -->
             <div id="all-container" class="content-container active">
-                <!-- 库存紧张提示区域 -->
                 <div class="hospital-section">
                     <div class="stock-alert">
                         <h3>⚠️ 庫存緊張項目（需補貨）</h3>
                         <div id="alertItemList"></div>
                     </div>
                 </div>
-                <!-- 更改记录表格 -->
                 <h3>最近5項庫存更改記錄</h3>
                 <table class="change-record-table">
                     <thead>
@@ -379,7 +327,7 @@
             <!-- 2. 2.4Φ cortex screw 专属表格 -->
             <div id="cortex-container" class="content-container">
                 <h3>2.4Φ cortex screw 庫存表</h3>
-                <table class="screw-sub-table">
+                <table class="cortex-table">
                     <thead>
                         <tr>
                             <th>Cat No.</th>
@@ -389,55 +337,6 @@
                         </tr>
                     </thead>
                     <tbody id="cortex-table-body"></tbody>
-                </table>
-            </div>
-
-            <!-- 3. 2.4Φ locking screw 专属表格 -->
-            <div id="locking-container" class="content-container">
-                <h3>2.4Φ locking screw 庫存表</h3>
-                <table class="screw-sub-table">
-                    <thead>
-                        <tr>
-                            <th>Cat No.</th>
-                            <th>Length (mm)</th>
-                            <th>stock balance</th>
-                            <th>status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="locking-table-body"></tbody>
-                </table>
-            </div>
-
-            <!-- 4. 2.4Φ VA locking screw 专属表格 -->
-            <div id="valocking-container" class="content-container">
-                <h3>2.4Φ VA locking screw 庫存表</h3>
-                <table class="screw-sub-table">
-                    <thead>
-                        <tr>
-                            <th>Cat No.</th>
-                            <th>Length (mm)</th>
-                            <th>stock balance</th>
-                            <th>status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="valocking-table-body"></tbody>
-                </table>
-            </div>
-
-            <!-- 5. 其他分类内容：Plate/Pins & K-wires 原表格 -->
-            <div id="other-container" class="content-container">
-                <table class="screw-sub-table">
-                    <thead>
-                        <tr>
-                            <th>Cat No.</th>
-                            <th>類型 (Type)</th>
-                            <th>規格 (Spec) (mm)</th>
-                            <th>stock balance（庫存餘額）</th>
-                            <th>庫存狀態 (Status)</th>
-                            <th>備註 (Remarks)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventory-table-body"></tbody>
                 </table>
             </div>
         </div>
@@ -459,64 +358,60 @@
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
-        // ========== 数据定义 ==========
-        // 1. 生成Length列表（6-14mm每1mm，16-32mm每2mm）
+        // ========== 核心数据定义 ==========
+        // 1. Length列表规则：6-14mm每1mm，16-32mm每2mm
         const lengthList = [];
-        // 6-14mm
         for (let i = 6; i <= 14; i++) lengthList.push(i);
-        // 16-32mm
         for (let i = 16; i <= 32; i += 2) lengthList.push(i);
 
-        // 2. 生成2.4Φ螺丝基础数据（按Length生成Cat No.和默认库存）
-        function generateScrewData(type) {
-            return lengthList.map(len => {
-                const catNo = `401.5${String(len).padStart(2, '0')}`;
-                // 随机生成库存和状态，模拟真实数据
-                const stock = Math.floor(Math.random() * 200);
-                let status = '有庫存';
-                if (stock === 0) status = '無庫存';
-                else if (stock < 50) status = '庫存偏低';
-                return { catNo, length: len, stock, status, type };
-            });
-        }
-        // 三个子分类数据
-        const cortexData = generateScrewData('2.4Φ cortex screw');
-        const lockingData = generateScrewData('2.4Φ locking screw');
-        const valockingData = generateScrewData('2.4Φ VA locking screw');
+        // 2. 初始化2.4Φ cortex screw数据（从localStorage读取，无则生成空库存）
+        let cortexData = JSON.parse(localStorage.getItem('cortexData')) || lengthList.map(len => {
+            return {
+                catNo: `401.5${String(len).padStart(2, '0')}`,
+                length: len,
+                stock: 0, // 无预设库存，初始为0
+                status: '無庫存'
+            };
+        });
 
-        // 3. 其他分类数据（Plate/Pins & K-wires）
-        const otherData = [
-            { id: 'PL-001', type: 'Plate', spec: '100×50×2', stock: 30, status: '有庫存', note: '不鏽鋼材質' },
-            { id: 'PK-001', type: 'Pins & K-wires', spec: 'Φ2×150', stock: 150, status: '有庫存', note: '骨科專用' },
-            { id: 'PK-002', type: 'Pins & K-wires', spec: 'Φ1.5×120', stock: 50, status: '庫存偏低', note: '需補貨' }
-        ];
+        // 3. 库存更改记录（最多5条）
+        let changeRecords = JSON.parse(localStorage.getItem('changeRecords')) || [];
 
-        // 4. 库存紧张数据（提取所有库存偏低/无库存项目）
-        function getLowStockItems() {
-            const allItems = [...cortexData, ...lockingData, ...valockingData, ...otherData];
-            return allItems.filter(item => item.status === '庫存偏低' || item.status === '無庫存');
+        // ========== 工具函数 ==========
+        // 更新库存状态
+        function updateStatus(item) {
+            if (item.stock <= 0) {
+                item.status = '無庫存';
+            } else if (item.stock < 50) {
+                item.status = '庫存偏低';
+            } else {
+                item.status = '有庫存';
+            }
+            return item;
         }
 
-        // 5. 库存更改记录数据
-        let changeRecords = JSON.parse(localStorage.getItem('changeRecords')) || [
-            { time: '11/01/2026 10:20:30', id: '401.508', type: '2.4Φ cortex screw', spec: '8mm', beforeStock: 60, afterStock: 50, operation: '減庫存' },
-            { time: '11/01/2026 11:15:45', id: '401.516', type: '2.4Φ locking screw', spec: '16mm', beforeStock: 30, afterStock: 80, operation: '加庫存' }
-        ];
+        // 保存数据到localStorage
+        function saveData() {
+            localStorage.setItem('cortexData', JSON.stringify(cortexData));
+            localStorage.setItem('changeRecords', JSON.stringify(changeRecords));
+        }
 
         // ========== 渲染函数 ==========
-        // 1. 渲染库存紧张提示
+        // 1. 渲染库存紧张提示（仅cortex数据）
         function renderAlertList() {
-            const lowStockItems = getLowStockItems();
+            const lowStockItems = cortexData.filter(item => item.status === '庫存偏低' || item.status === '無庫存');
             const alertItemList = document.getElementById('alertItemList');
             alertItemList.innerHTML = '';
+            
             if (lowStockItems.length === 0) {
                 alertItemList.innerHTML = '<div class="alert-item">暫無庫存緊張項目</div>';
                 return;
             }
+            
             lowStockItems.forEach(item => {
                 const alertItem = document.createElement('div');
                 alertItem.className = 'alert-item';
-                alertItem.textContent = `Cat No. ${item.catNo || item.id} (${item.type}) - 庫存${item.stock}，${item.status}`;
+                alertItem.textContent = `Cat No. ${item.catNo} (${item.length}mm) - 庫存${item.stock}，${item.status}`;
                 alertItemList.appendChild(alertItem);
             });
         }
@@ -525,18 +420,20 @@
         function renderChangeRecords() {
             const tableBody = document.getElementById('changeRecordTableBody');
             tableBody.innerHTML = '';
+            
             if (changeRecords.length === 0) {
                 tableBody.innerHTML = '<td colspan="7" style="text-align: center; color: #666;">暫無庫存更改記錄</td>';
                 return;
             }
+            
             changeRecords.reverse().forEach(record => {
                 const tr = document.createElement('tr');
                 const operationClass = record.operation === '加庫存' ? 'operation-add' : 'operation-sub';
                 tr.innerHTML = `
                     <td>${record.time}</td>
-                    <td>${record.id}</td>
-                    <td>${record.type}</td>
-                    <td>${record.spec}</td>
+                    <td>${record.catNo}</td>
+                    <td>2.4Φ cortex screw</td>
+                    <td>${record.length}mm</td>
                     <td>${record.beforeStock}</td>
                     <td>${record.afterStock}</td>
                     <td class="${operationClass}">${record.operation}</td>
@@ -546,39 +443,22 @@
             changeRecords.reverse();
         }
 
-        // 3. 渲染2.4Φ子分类表格（通用函数）
-        function renderScrewTable(data, tableId) {
-            const tableBody = document.getElementById(tableId);
+        // 3. 渲染cortex库存表格
+        function renderCortexTable() {
+            const tableBody = document.getElementById('cortex-table-body');
             tableBody.innerHTML = '';
-            data.forEach(item => {
+            
+            cortexData.forEach(item => {
                 const tr = document.createElement('tr');
                 let statusClass = 'status-in';
                 if (item.status === '庫存偏低') statusClass = 'status-low';
                 else if (item.status === '無庫存') statusClass = 'status-out';
+                
                 tr.innerHTML = `
                     <td>${item.catNo}</td>
                     <td>${item.length}</td>
                     <td>${item.stock}</td>
                     <td class="${statusClass}">${item.status}</td>
-                `;
-                tableBody.appendChild(tr);
-            });
-        }
-
-        // 4. 渲染其他分类表格（Plate/Pins & K-wires）
-        function renderOtherTable(filteredData) {
-            const tableBody = document.getElementById('inventory-table-body');
-            tableBody.innerHTML = '';
-            filteredData.forEach(item => {
-                const tr = document.createElement('tr');
-                let statusClass = item.status === '有庫存' ? 'status-in' : item.status === '庫存偏低' ? 'status-low' : 'status-out';
-                tr.innerHTML = `
-                    <td>${item.id}</td>
-                    <td>${item.type}</td>
-                    <td>${item.spec}</td>
-                    <td>${item.stock}</td>
-                    <td class="${statusClass}">${item.status}</td>
-                    <td>${item.note}</td>
                 `;
                 tableBody.appendChild(tr);
             });
@@ -591,57 +471,66 @@
                 container.classList.remove('active');
             });
             // 移除所有链接active类
-            document.querySelectorAll('.category-item a, .sub-category-item a').forEach(link => {
+            document.querySelectorAll('.category-item a').forEach(link => {
                 link.classList.remove('active');
             });
-            // 给当前点击链接加active
+            // 当前链接高亮
             event.target.classList.add('active');
 
-            // 切换对应容器
-            switch(filterValue) {
-                case 'all':
-                    document.getElementById('all-container').classList.add('active');
-                    renderAlertList();
-                    renderChangeRecords();
-                    break;
-                case 'cortex':
-                    document.getElementById('cortex-container').classList.add('active');
-                    renderScrewTable(cortexData, 'cortex-table-body');
-                    break;
-                case 'locking':
-                    document.getElementById('locking-container').classList.add('active');
-                    renderScrewTable(lockingData, 'locking-table-body');
-                    break;
-                case 'valocking':
-                    document.getElementById('valocking-container').classList.add('active');
-                    renderScrewTable(valockingData, 'valocking-table-body');
-                    break;
-                case 'Plate':
-                    document.getElementById('other-container').classList.add('active');
-                    renderOtherTable(otherData.filter(item => item.type === 'Plate'));
-                    break;
-                case 'Pins & K-wires':
-                    document.getElementById('other-container').classList.add('active');
-                    renderOtherTable(otherData.filter(item => item.type === 'Pins & K-wires'));
-                    break;
-                case 'screws':
-                    // 点击Screws父分类：默认选中第一个子项
-                    document.querySelector('[data-filter="cortex"]').click();
-                    break;
+            // 切换对应内容
+            if (filterValue === 'all') {
+                document.getElementById('all-container').classList.add('active');
+                renderAlertList();
+                renderChangeRecords();
+            } else if (filterValue === 'cortex') {
+                document.getElementById('cortex-container').classList.add('active');
+                renderCortexTable();
             }
         }
 
-        // ========== 事件绑定 ==========
-        // 1. Screws父分类展开折叠
-        const screwsParent = document.getElementById('screwsParent');
-        screwsParent.querySelector('a').addEventListener('click', (e) => {
-            e.preventDefault();
-            screwsParent.classList.toggle('expanded');
-            switchContent(e.target.dataset.filter);
-        });
+        // ========== 全局函数：供item-change页面调用 ==========
+        // 1. 加减库存
+        window.updateCortexStock = function(catNo, adjustNum) {
+            const targetItem = cortexData.find(item => item.catNo === catNo);
+            if (!targetItem) return false;
 
-        // 2. 所有分类链接点击
-        document.querySelectorAll('.category-item a, .sub-category-item a').forEach(link => {
+            const beforeStock = targetItem.stock;
+            targetItem.stock += adjustNum;
+            if (targetItem.stock < 0) targetItem.stock = 0; // 防止负库存
+
+            // 更新状态
+            updateStatus(targetItem);
+            // 保存数据
+            saveData();
+            // 渲染更新
+            renderCortexTable();
+            renderAlertList();
+
+            return { beforeStock, afterStock: targetItem.stock, length: targetItem.length };
+        };
+
+        // 2. 添加更改记录
+        window.addCortexRecord = function(catNo, beforeStock, afterStock, length) {
+            const now = new Date();
+            const timeStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+            const newRecord = {
+                time: timeStr,
+                catNo: catNo,
+                length: length,
+                beforeStock: beforeStock,
+                afterStock: afterStock,
+                operation: afterStock > beforeStock ? '加庫存' : '減庫存'
+            };
+
+            if (changeRecords.length >= 5) changeRecords.shift();
+            changeRecords.push(newRecord);
+            saveData();
+            renderChangeRecords();
+        };
+
+        // ========== 事件绑定 ==========
+        document.querySelectorAll('.category-item a').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 switchContent(link.dataset.filter);
@@ -652,29 +541,7 @@
         window.onload = () => {
             renderAlertList();
             renderChangeRecords();
-            // 初始化三个子分类表格
-            renderScrewTable(cortexData, 'cortex-table-body');
-            renderScrewTable(lockingData, 'locking-table-body');
-            renderScrewTable(valockingData, 'valocking-table-body');
-        };
-
-        // 3. 添加更改记录函数（供item-change页面调用）
-        window.addChangeRecord = function(itemId, beforeStock, afterStock, type, spec) {
-            const now = new Date();
-            const timeStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-            const newRecord = {
-                time: timeStr,
-                id: itemId,
-                type: type,
-                spec: spec,
-                beforeStock: beforeStock,
-                afterStock: afterStock,
-                operation: afterStock > beforeStock ? '加庫存' : '減庫存'
-            };
-            if (changeRecords.length >= 5) changeRecords.shift();
-            changeRecords.push(newRecord);
-            localStorage.setItem('changeRecords', JSON.stringify(changeRecords));
-            renderChangeRecords();
+            renderCortexTable();
         };
     </script>
 </body>
