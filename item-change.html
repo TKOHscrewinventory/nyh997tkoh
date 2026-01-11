@@ -114,6 +114,31 @@
             border-color: #3498db;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
+        /* 新增：库存余额按钮容器样式 */
+        .stock-btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.8rem;
+        }
+        .stock-btn {
+            padding: 0.6rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        .add-btn {
+            background-color: #e74c3c; /* 红色+号 */
+        }
+        .minus-btn {
+            background-color: #3498db; /* 蓝色-号 */
+        }
+        .stock-btn:hover {
+            opacity: 0.9;
+        }
         .submit-btn {
             background-color: #3498db;
             color: white;
@@ -123,6 +148,7 @@
             cursor: pointer;
             font-size: 1rem;
             transition: background-color 0.3s;
+            margin-top: 1rem;
         }
         .submit-btn:hover {
             background-color: #2980b9;
@@ -150,31 +176,164 @@
             <!-- 库存项目修改表单 -->
             <form id="item-change-form">
                 <div class="form-group">
-                    <label for="item-id">項目編號</label>
+                    <label for="item-id">項目編號 (Item ID)</label>
                     <input type="text" id="item-id" placeholder="輸入項目編號（如 SC-001）" required>
                 </div>
                 <div class="form-group">
-                    <label for="item-type">項目類型</label>
+                    <label for="item-type">項目類型 (Item Type)</label>
                     <select id="item-type" required>
-                        <option value="">請選擇類型</option>
-                        <option value="十字槽螺絲">十字槽螺絲</option>
-                        <option value="內六角螺絲">內六角螺絲</option>
-                        <option value="一字槽螺絲">一字槽螺絲</option>
-                        <option value="自攻螺絲">自攻螺絲</option>
-                        <option value="緊固件配件">緊固件配件</option>
+                        <option value="">請選擇類型 (Select Type)</option>
+                        <option value="十字槽螺絲">十字槽螺絲 (Cross Slot Screw)</option>
+                        <option value="內六角螺絲">內六角螺絲 (Hexagon Socket Screw)</option>
+                        <option value="一字槽螺絲">一字槽螺絲 (Slotted Screw)</option>
+                        <option value="自攻螺絲">自攻螺絲 (Self-Tapping Screw)</option>
+                        <option value="緊固件配件">緊固件配件 (Fastener Accessories)</option>
                     </select>
                 </div>
+                <!-- 修改：库存数量 → 库存余额 -->
                 <div class="form-group">
-                    <label for="item-stock">庫存數量</label>
-                    <input type="number" id="item-stock" placeholder="輸入庫存數量" min="0" required>
+                    <label for="item-stock">stock balance（庫存餘額）</label>
+                    <input type="number" id="item-stock" placeholder="輸入調整數量（如 50、-20）" min="0" required>
+                    <!-- 新增：+/-按钮 -->
+                    <div class="stock-btn-group">
+                        <button type="button" class="stock-btn add-btn" id="add-stock-btn">+</button>
+                        <button type="button" class="stock-btn minus-btn" id="minus-stock-btn">-</button>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label for="item-note">備註</label>
+                    <label for="item-note">備註 (Remarks)</label>
                     <input type="text" id="item-note" placeholder="輸入備註信息（如 需補貨、庫存充足）">
                 </div>
-                <button type="button" class="submit-btn" onclick="alert('項目修改提交成功！')">提交修改</button>
+                <button type="button" class="submit-btn" id="save-stock-btn">保存庫存修改</button>
             </form>
         </div>
     </div>
+
+    <script>
+        // 初始化库存数据（从localStorage读取，无则用默认值）
+        let inventoryData = JSON.parse(localStorage.getItem('inventoryData')) || [
+            { id: 'SC-001', type: '十字槽螺絲', spec: 'M3 × 10', stock: 500, status: '有庫存', note: '常用型號' },
+            { id: 'SC-002', type: '內六角螺絲', spec: 'M5 × 20', stock: 80, status: '庫存偏低', note: '需補貨' },
+            { id: 'SC-003', type: '自攻螺絲', spec: 'M4 × 15', stock: 0, status: '無庫存', note: '已停產' },
+            { id: 'SC-004', type: '一字槽螺絲', spec: 'M2 × 8', stock: 1200, status: '有庫存', note: '庫存充足' }
+        ];
+
+        // 获取DOM元素
+        const itemIdInput = document.getElementById('item-id');
+        const itemTypeInput = document.getElementById('item-type');
+        const itemStockInput = document.getElementById('item-stock');
+        const itemNoteInput = document.getElementById('item-note');
+        const addStockBtn = document.getElementById('add-stock-btn');
+        const minusStockBtn = document.getElementById('minus-stock-btn');
+        const saveStockBtn = document.getElementById('save-stock-btn');
+
+        // +号按钮逻辑：增加库存
+        addStockBtn.addEventListener('click', () => {
+            const itemId = itemIdInput.value.trim();
+            const adjustNum = parseInt(itemStockInput.value) || 0;
+            if (!itemId || adjustNum <= 0) {
+                alert('請輸入有效的項目編號和調整數量（數量需大於0）！');
+                return;
+            }
+            // 查找对应项目
+            const targetItem = inventoryData.find(item => item.id === itemId);
+            if (!targetItem) {
+                alert(`未找到項目編號 ${itemId}，請確認編號正確！`);
+                return;
+            }
+            // 增加库存
+            targetItem.stock += adjustNum;
+            // 更新库存状态
+            updateStockStatus(targetItem);
+            // 保存到localStorage
+            localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
+            alert(`項目 ${itemId} 庫存已增加 ${adjustNum}，當前庫存：${targetItem.stock}`);
+            // 清空输入框
+            itemStockInput.value = '';
+        });
+
+        // -号按钮逻辑：减少库存
+        minusStockBtn.addEventListener('click', () => {
+            const itemId = itemIdInput.value.trim();
+            const adjustNum = parseInt(itemStockInput.value) || 0;
+            if (!itemId || adjustNum <= 0) {
+                alert('請輸入有效的項目編號和調整數量（數量需大於0）！');
+                return;
+            }
+            // 查找对应项目
+            const targetItem = inventoryData.find(item => item.id === itemId);
+            if (!targetItem) {
+                alert(`未找到項目編號 ${itemId}，請確認編號正確！`);
+                return;
+            }
+            // 防止库存为负
+            if (targetItem.stock - adjustNum < 0) {
+                alert(`庫存不足！當前庫存：${targetItem.stock}，無法減少 ${adjustNum}`);
+                return;
+            }
+            // 减少库存
+            targetItem.stock -= adjustNum;
+            // 更新库存状态
+            updateStockStatus(targetItem);
+            // 保存到localStorage
+            localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
+            alert(`項目 ${itemId} 庫存已減少 ${adjustNum}，當前庫存：${targetItem.stock}`);
+            // 清空输入框
+            itemStockInput.value = '';
+        });
+
+        // 保存修改按钮逻辑（批量修改）
+        saveStockBtn.addEventListener('click', () => {
+            const itemId = itemIdInput.value.trim();
+            const itemType = itemTypeInput.value;
+            const itemStock = parseInt(itemStockInput.value) || 0;
+            const itemNote = itemNoteInput.value.trim();
+            
+            if (!itemId || !itemType) {
+                alert('請填寫項目編號和類型！');
+                return;
+            }
+
+            // 查找对应项目
+            const targetItem = inventoryData.find(item => item.id === itemId);
+            if (targetItem) {
+                // 更新信息
+                targetItem.type = itemType;
+                targetItem.stock = itemStock;
+                targetItem.note = itemNote || targetItem.note;
+                // 更新库存状态
+                updateStockStatus(targetItem);
+            } else {
+                // 新增项目
+                const newItem = {
+                    id: itemId,
+                    type: itemType,
+                    spec: '未知規格',
+                    stock: itemStock,
+                    status: updateStockStatus({ stock: itemStock }),
+                    note: itemNote || '新增項目'
+                };
+                inventoryData.push(newItem);
+            }
+
+            // 保存到localStorage
+            localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
+            alert('庫存修改保存成功！將返回庫存頁面');
+            // 跳回库存页
+            window.location.href = 'inventory.html';
+        });
+
+        // 辅助函数：更新库存状态
+        function updateStockStatus(item) {
+            if (item.stock <= 0) {
+                item.status = '無庫存';
+            } else if (item.stock < 100) {
+                item.status = '庫存偏低';
+            } else {
+                item.status = '有庫存';
+            }
+            return item.status;
+        }
+    </script>
 </body>
 </html>
