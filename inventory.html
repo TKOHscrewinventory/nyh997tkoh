@@ -40,10 +40,10 @@
             font-size: 1.5rem;
             font-weight: bold;
         }
-        /* 导航按钮容器样式，适配多个按钮 */
+        /* 导航按钮容器样式 */
         .nav-buttons {
             display: flex;
-            gap: 1rem; /* 按钮之间的间距 */
+            gap: 1rem;
         }
         .item-change-btn {
             background-color: #3498db;
@@ -70,7 +70,7 @@
             background-color: #c0392b;
         }
 
-        /* 主布局：左侧分类 + 右侧表格 */
+        /* 主布局 */
         .main-layout {
             max-width: 1200px;
             margin: 3rem auto;
@@ -90,7 +90,6 @@
             position: sticky;
             top: 80px;
         }
-        /* 左侧分类标题保持 orthropedic stock item */
         .category-sidebar h2 {
             color: #2c3e50;
             font-size: 1.3rem;
@@ -132,6 +131,41 @@
             margin-bottom: 1.5rem;
             text-align: center;
         }
+
+        /* 新增：医院图标+补货提示区域样式 */
+        .hospital-section {
+            display: none; /* 默认隐藏，All Items选中时显示 */
+            margin-bottom: 2rem;
+            text-align: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        .hospital-logo {
+            width: 150px; /* 图标宽度，可调整 */
+            height: auto;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+        }
+        .stock-alert {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: left;
+            margin-top: 1rem;
+        }
+        .stock-alert h3 {
+            color: #856404;
+            margin-bottom: 0.8rem;
+            font-size: 1.2rem;
+        }
+        .alert-item {
+            color: #856404;
+            margin-bottom: 0.3rem;
+            padding-left: 0.5rem;
+            border-left: 3px solid #f8c929;
+        }
+
         /* 库存表格样式 */
         .inventory-table {
             width: 100%;
@@ -168,7 +202,7 @@
             color: white;
         }
 
-        /* 响应式适配：手机端合并布局 */
+        /* 响应式适配 */
         @media (max-width: 768px) {
             .main-layout {
                 flex-direction: column;
@@ -176,6 +210,9 @@
             .category-sidebar {
                 width: 100%;
                 position: static;
+            }
+            .hospital-logo {
+                width: 120px;
             }
         }
     </style>
@@ -185,7 +222,6 @@
     <nav>
         <div class="nav-container">
             <div class="logo">TKOHscrewinventory</div>
-            <!-- 导航按钮容器，包含item change和登出按钮 -->
             <div class="nav-buttons">
                 <button class="item-change-btn" onclick="window.location.href='item-change.html'">item change</button>
                 <button class="logout-btn" onclick="window.location.href='index.html'">登出</button>
@@ -195,7 +231,7 @@
 
     <!-- 主布局 -->
     <div class="main-layout">
-        <!-- 左侧分类栏：替换为3个新分类 -->
+        <!-- 左侧分类栏 -->
         <div class="category-sidebar">
             <h2>orthropedic stock item</h2>
             <ul class="category-list">
@@ -206,9 +242,22 @@
             </ul>
         </div>
 
-        <!-- 右侧库存表格 -->
+        <!-- 右侧表格区域 -->
         <div class="table-container">
             <h2>Screw Inventory 螺絲庫存表</h2>
+
+            <!-- 新增：医院图标+补货提示区域 -->
+            <div class="hospital-section" id="hospitalSection">
+                <!-- 将军澳医院图标（先用示例链接，后续替换为你上传的图标） -->
+                <img src="https://raw.githubusercontent.com/tkohscrewinventory/nyh997tkoh/main/hospital-logo.png" alt="将军澳医院" class="hospital-logo">
+                <!-- 库存紧张提示 -->
+                <div class="stock-alert">
+                    <h3>⚠️ 库存紧张项目（需补货）</h3>
+                    <div id="alertItemList"></div>
+                </div>
+            </div>
+
+            <!-- 库存表格 -->
             <table class="inventory-table">
                 <thead>
                     <tr>
@@ -228,7 +277,7 @@
     </div>
 
     <script>
-        // 从localStorage读取库存数据，无则用默认值（更新type以匹配新分类）
+        // 从localStorage读取库存数据，无则用默认值
         let inventoryData = JSON.parse(localStorage.getItem('inventoryData')) || [
             { id: 'SC-001', type: 'Screws', spec: 'M3 × 10', stock: 500, status: '有庫存', note: '常用型號' },
             { id: 'SC-002', type: 'Screws', spec: 'M5 × 20', stock: 80, status: '庫存偏低', note: '需補貨' },
@@ -238,22 +287,20 @@
             { id: 'PK-002', type: 'Pins & K-wires', spec: 'Φ1.5×120', stock: 50, status: '庫存偏低', note: '需補貨' }
         ];
 
-        // 获取表格主体元素
+        // 获取DOM元素
         const tableBody = document.getElementById('inventory-table-body');
+        const hospitalSection = document.getElementById('hospitalSection');
+        const alertItemList = document.getElementById('alertItemList');
+        const categoryLinks = document.querySelectorAll('.category-item a');
 
         // 初始化表格内容
         function renderInventoryTable(filteredData = inventoryData) {
-            // 清空原有内容
+            // 清空表格
             tableBody.innerHTML = '';
-            // 遍历库存数据生成表格行
+            // 生成表格行
             filteredData.forEach(item => {
                 const tr = document.createElement('tr');
-                // 状态样式类
-                let statusClass = '';
-                if (item.status === '有庫存') statusClass = 'status-in';
-                else if (item.status === '庫存偏低') statusClass = 'status-low';
-                else statusClass = 'status-out';
-                // 表格内容
+                let statusClass = item.status === '有庫存' ? 'status-in' : item.status === '庫存偏低' ? 'status-low' : 'status-out';
                 tr.innerHTML = `
                     <td>${item.id}</td>
                     <td>${item.type}</td>
@@ -266,8 +313,26 @@
             });
         }
 
-        // 分类点击高亮+筛选逻辑（适配新分类）
-        const categoryLinks = document.querySelectorAll('.category-item a');
+        // 生成库存紧张提示列表
+        function renderAlertList() {
+            // 筛选出库存偏低的项目
+            const lowStockItems = inventoryData.filter(item => item.status === '庫存偏低');
+            // 清空提示列表
+            alertItemList.innerHTML = '';
+            if (lowStockItems.length === 0) {
+                alertItemList.innerHTML = '<div class="alert-item">暂无库存紧张项目</div>';
+                return;
+            }
+            // 生成每个紧张项目的提示
+            lowStockItems.forEach(item => {
+                const alertItem = document.createElement('div');
+                alertItem.className = 'alert-item';
+                alertItem.textContent = `Cat No. ${item.id} (${item.type}) - 库存${item.stock}，需补货`;
+                alertItemList.appendChild(alertItem);
+            });
+        }
+
+        // 分类点击逻辑（新增：控制医院区域显示/隐藏）
         categoryLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -275,20 +340,26 @@
                 categoryLinks.forEach(l => l.classList.remove('active'));
                 // 给当前点击的加active类
                 link.classList.add('active');
-                // 筛选逻辑：匹配新分类名
-                const category = link.textContent;
-                if (category === 'All Items') {
+                // 控制医院区域显示：仅All Items选中时显示
+                if (link.textContent === 'All Items') {
+                    hospitalSection.style.display = 'block';
+                    renderAlertList(); // 刷新补货提示
                     renderInventoryTable(); // 显示全部
                 } else {
-                    // 筛选type等于当前分类的项目
-                    const filteredData = inventoryData.filter(item => item.type === category);
+                    hospitalSection.style.display = 'none';
+                    // 筛选对应分类的项目
+                    const filteredData = inventoryData.filter(item => item.type === link.textContent);
                     renderInventoryTable(filteredData);
                 }
             });
         });
 
-        // 页面加载时渲染表格
-        window.onload = renderInventoryTable;
+        // 页面加载时：显示All Items内容+医院区域+补货提示
+        window.onload = () => {
+            hospitalSection.style.display = 'block';
+            renderAlertList();
+            renderInventoryTable();
+        };
     </script>
 </body>
 </html>
