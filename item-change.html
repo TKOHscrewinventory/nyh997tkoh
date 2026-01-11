@@ -5,21 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Item Change - 2.4Φ cortex screw</title>
     <style>
-        /* 全局样式重置 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: "Microsoft JhengHei", Arial, sans-serif;
             background-color: #f8f9fa;
             color: #333;
             line-height: 1.6;
         }
-
-        /* 导航栏 */
         nav {
             background-color: #2c3e50;
             color: white;
@@ -44,32 +40,23 @@
             display: flex;
             gap: 1rem;
         }
+        .back-btn, .logout-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
         .back-btn {
             background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .back-btn:hover {
-            background-color: #2980b9;
         }
         .logout-btn {
             background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
         }
-        .logout-btn:hover {
-            background-color: #c0392b;
+        .back-btn:hover, .logout-btn:hover {
+            opacity: 0.9;
         }
-
-        /* 主内容区 */
         .container {
             max-width: 800px;
             margin: 3rem auto;
@@ -95,8 +82,6 @@
             text-align: center;
             color: #666;
         }
-
-        /* 表单样式 */
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -119,8 +104,6 @@
             border-color: #3498db;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
-
-        /* 按钮组样式 */
         .stock-btn-group {
             display: flex;
             gap: 1rem;
@@ -138,16 +121,14 @@
             transition: opacity 0.3s;
         }
         .add-btn {
-            background-color: #e74c3c;
+            background-color: #2ecc71;
         }
         .minus-btn {
-            background-color: #3498db;
+            background-color: #e74c3c;
         }
         .stock-btn:hover {
             opacity: 0.9;
         }
-
-        /* 响应式适配 */
         @media (max-width: 768px) {
             .nav-container {
                 flex-direction: column;
@@ -177,103 +158,112 @@
             <h2>2.4Φ cortex screw 庫存調整</h2>
             <p>選擇螺絲長度，輸入調整數量，點擊按鈕完成庫存變更</p>
             
-            <form id="cortex-change-form">
-                <div class="form-group">
-                    <label for="length-select">螺絲長度 (Length)</label>
-                    <select id="length-select" required>
-                        <option value="">請選擇長度</option>
-                    </select>
-                </div>
+            <div class="form-group">
+                <label for="length-select">螺絲長度 (Length)</label>
+                <select id="length-select" required>
+                    <option value="">請選擇長度</option>
+                </select>
+            </div>
 
-                <div class="form-group">
-                    <label for="cat-no">Cat No.</label>
-                    <input type="text" id="cat-no" readonly placeholder="選擇長度後自動生成">
-                </div>
+            <div class="form-group">
+                <label for="cat-no">Cat No.</label>
+                <input type="text" id="cat-no" readonly placeholder="選擇長度後自動生成">
+            </div>
 
-                <div class="form-group">
-                    <label for="adjust-num">調整數量 (需大於0)</label>
-                    <input type="number" id="adjust-num" min="1" placeholder="輸入調整數量" required>
-                    <div class="stock-btn-group">
-                        <button type="button" class="stock-btn add-btn" id="add-btn">+ 增加庫存</button>
-                        <button type="button" class="stock-btn minus-btn" id="minus-btn">- 減少庫存</button>
-                    </div>
+            <div class="form-group">
+                <label for="adjust-num">調整數量 (需大於0)</label>
+                <input type="number" id="adjust-num" min="1" placeholder="輸入調整數量" required>
+                <div class="stock-btn-group">
+                    <button type="button" class="stock-btn add-btn" id="add-btn">+ 增加庫存</button>
+                    <button type="button" class="stock-btn minus-btn" id="minus-btn">- 減少庫存</button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
     <script>
-        // ========== 数据初始化 ==========
+        // 生成长度列表：6-14mm(步长1)、16-32mm(步长2)
         const lengthList = [];
         for (let i = 6; i <= 14; i++) lengthList.push(i);
         for (let i = 16; i <= 32; i += 2) lengthList.push(i);
 
-        // DOM元素
+        // 初始化长度下拉框
         const lengthSelect = document.getElementById('length-select');
-        const catNoInput = document.getElementById('cat-no');
-        const adjustNumInput = document.getElementById('adjust-num');
-        const addBtn = document.getElementById('add-btn');
-        const minusBtn = document.getElementById('minus-btn');
-
-        // 初始化长度选择框
-        function initLengthSelect() {
-            lengthList.forEach(len => {
-                const option = document.createElement('option');
-                option.value = len;
-                option.textContent = `${len} mm`;
-                lengthSelect.appendChild(option);
-            });
-        }
-
-        // 选择长度生成Cat No.
-        lengthSelect.addEventListener('change', () => {
-            const len = lengthSelect.value;
-            catNoInput.value = len ? `401.5${String(len).padStart(2, '0')}` : '';
+        lengthList.forEach(len => {
+            const option = document.createElement('option');
+            option.value = len;
+            option.textContent = `${len} mm`;
+            lengthSelect.appendChild(option);
         });
 
-        // ========== 核心修复：直接操作localStorage ==========
-        function updateStock(isAdd) {
+        // 选择长度自动生成Cat No.
+        const catNoInput = document.getElementById('cat-no');
+        lengthSelect.addEventListener('change', () => {
+            const selectedLen = lengthSelect.value;
+            catNoInput.value = selectedLen ? `401.5${String(selectedLen).padStart(2, '0')}` : '';
+        });
+
+        // 库存调整核心函数
+        const adjustNumInput = document.getElementById('adjust-num');
+        function modifyStock(isAdd) {
             const catNo = catNoInput.value;
             const adjustNum = parseInt(adjustNumInput.value) || 0;
-            if (!catNo || adjustNum <= 0) {
-                alert('請選擇長度並輸入有效的調整數量！');
+
+            // 校验输入
+            if (!catNo) {
+                alert('請先選擇螺絲長度！');
+                return;
+            }
+            if (adjustNum <= 0) {
+                alert('調整數量必須大於0！');
                 return;
             }
 
-            // 读取localStorage中的数据
+            // 读取本地库存数据
             let cortexData = JSON.parse(localStorage.getItem('cortexData')) || [];
             const targetItem = cortexData.find(item => item.catNo === catNo);
+            
             if (!targetItem) {
-                alert('未找到對應的庫存項目！');
+                alert('未找到對應的庫存項目，請返回庫存頁刷新後再試！');
                 return;
             }
 
-            // 计算库存变化
+            // 计算库存
             const beforeStock = targetItem.stock;
             targetItem.stock = isAdd ? beforeStock + adjustNum : beforeStock - adjustNum;
-            if (targetItem.stock < 0) targetItem.stock = 0;
+            if (targetItem.stock < 0) targetItem.stock = 0; // 防止负库存
 
-            // 更新状态
-            if (targetItem.stock <= 0) targetItem.status = '無庫存';
-            else if (targetItem.stock < 50) targetItem.status = '庫存偏低';
-            else targetItem.status = '有庫存';
+            // 更新库存状态
+            if (targetItem.stock === 0) {
+                targetItem.status = '無庫存';
+            } else if (targetItem.stock < 50) {
+                targetItem.status = '庫存偏低';
+            } else {
+                targetItem.status = '有庫存';
+            }
 
-            // 保存库存数据
+            // 保存库存数据到本地
             localStorage.setItem('cortexData', JSON.stringify(cortexData));
 
             // 添加更改记录
             addChangeRecord(catNo, beforeStock, targetItem.stock, targetItem.length, isAdd);
+
+            // 提示成功
+            alert(`✅ 庫存${isAdd ? '增加' : '減少'}成功！
+Cat No.：${catNo}
+長度：${targetItem.length}mm
+更改前：${beforeStock}
+更改後：${targetItem.stock}`);
             
-            // 提示并清空输入
-            alert(`庫存${isAdd ? '增加' : '減少'}成功！\nCat No. ${catNo}\n更改前：${beforeStock}\n更改後：${targetItem.stock}`);
+            // 清空数量输入框
             adjustNumInput.value = '';
         }
 
-        // 添加更改记录
+        // 添加库存更改记录
         function addChangeRecord(catNo, beforeStock, afterStock, length, isAdd) {
             const now = new Date();
             const timeStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-            
+
             let changeRecords = JSON.parse(localStorage.getItem('changeRecords')) || [];
             const newRecord = {
                 time: timeStr,
@@ -284,19 +274,22 @@
                 operation: isAdd ? '加庫存' : '減庫存'
             };
 
-            if (changeRecords.length >= 5) changeRecords.shift();
+            // 最多保留5条记录
+            if (changeRecords.length >= 5) {
+                changeRecords.shift(); // 删除最旧的
+            }
             changeRecords.push(newRecord);
+
+            // 保存记录
             localStorage.setItem('changeRecords', JSON.stringify(changeRecords));
         }
 
-        // ========== 事件绑定 ==========
-        addBtn.addEventListener('click', () => updateStock(true));
-        minusBtn.addEventListener('click', () => updateStock(false));
+        // 绑定按钮事件
+        document.getElementById('add-btn').addEventListener('click', () => modifyStock(true));
+        document.getElementById('minus-btn').addEventListener('click', () => modifyStock(false));
 
-        // 页面初始化
+        // 页面初始化：确保基础数据存在
         window.onload = () => {
-            initLengthSelect();
-            // 确保cortexData存在
             if (!localStorage.getItem('cortexData')) {
                 const initData = lengthList.map(len => ({
                     catNo: `401.5${String(len).padStart(2, '0')}`,
