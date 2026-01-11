@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Item Change - TKOHscrewinventory</title>
+    <title>Item Change - 2.4Φ cortex screw</title>
     <style>
         /* 全局样式重置 */
         * {
@@ -87,11 +87,16 @@
             margin-bottom: 1.5rem;
             border-bottom: 2px solid #3498db;
             padding-bottom: 0.5rem;
+            text-align: center;
         }
         .content-card p {
             font-size: 1.1rem;
             margin-bottom: 1rem;
+            text-align: center;
+            color: #666;
         }
+
+        /* 表单样式 */
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -101,7 +106,7 @@
             font-weight: 500;
             color: #2c3e50;
         }
-        .form-group input, .form-group select {
+        .form-group select, .form-group input {
             width: 100%;
             padding: 0.8rem 1rem;
             border: 1px solid #ddd;
@@ -114,13 +119,15 @@
             border-color: #3498db;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
-        /* 库存余额按钮容器样式 */
+
+        /* 按钮组样式 */
         .stock-btn-group {
             display: flex;
             gap: 1rem;
             margin-top: 0.8rem;
         }
         .stock-btn {
+            flex: 1;
             padding: 0.6rem 1.5rem;
             border: none;
             border-radius: 5px;
@@ -131,27 +138,26 @@
             transition: opacity 0.3s;
         }
         .add-btn {
-            background-color: #e74c3c; /* 红色+号 */
+            background-color: #e74c3c;
         }
         .minus-btn {
-            background-color: #3498db; /* 蓝色-号 */
+            background-color: #3498db;
         }
         .stock-btn:hover {
             opacity: 0.9;
         }
-        .submit-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 0.8rem 2rem;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s;
-            margin-top: 1rem;
-        }
-        .submit-btn:hover {
-            background-color: #2980b9;
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 0.8rem;
+                text-align: center;
+            }
+            .nav-buttons {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -170,160 +176,130 @@
     <!-- 主内容区 -->
     <div class="container">
         <div class="content-card">
-            <h2>Item Change - 庫存項目修改</h2>
-            <p>在此頁面可修改、新增或刪除庫存項目的信息</p>
+            <h2>2.4Φ cortex screw 庫存調整</h2>
+            <p>選擇螺絲長度，輸入調整數量，點擊按鈕完成庫存變更</p>
             
-            <!-- 库存项目修改表单 -->
-            <form id="item-change-form">
-                <!-- 修改点1：Item ID 改为 Cat No. -->
+            <form id="cortex-change-form">
+                <!-- 1. 长度选择（匹配inventory的length列表） -->
                 <div class="form-group">
-                    <label for="item-id">Cat No.</label>
-                    <input type="text" id="item-id" placeholder="輸入項目編號（如 SC-001）" required>
+                    <label for="length-select">螺絲長度 (Length)</label>
+                    <select id="length-select" required>
+                        <option value="">請選擇長度</option>
+                        <!-- 选项由JS动态生成 -->
+                    </select>
                 </div>
 
-                <!-- 修改点2：删除 item type 整个输入区域 -->
-
-                <!-- 库存余额区域 -->
+                <!-- 2. Cat No. 自动生成（只读） -->
                 <div class="form-group">
-                    <label for="item-stock">stock balance（庫存餘額）</label>
-                    <input type="number" id="item-stock" placeholder="輸入調整數量（如 50、-20）" min="0" required>
-                    <!-- +/-按钮 -->
+                    <label for="cat-no">Cat No.</label>
+                    <input type="text" id="cat-no" readonly placeholder="選擇長度後自動生成">
+                </div>
+
+                <!-- 3. 调整数量 -->
+                <div class="form-group">
+                    <label for="adjust-num">調整數量 (需大於0)</label>
+                    <input type="number" id="adjust-num" min="1" placeholder="輸入調整數量" required>
+                    <!-- 加减按钮 -->
                     <div class="stock-btn-group">
-                        <button type="button" class="stock-btn add-btn" id="add-stock-btn">+</button>
-                        <button type="button" class="stock-btn minus-btn" id="minus-stock-btn">-</button>
+                        <button type="button" class="stock-btn add-btn" id="add-btn">+ 增加庫存</button>
+                        <button type="button" class="stock-btn minus-btn" id="minus-btn">- 減少庫存</button>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="item-note">備註 (Remarks)</label>
-                    <input type="text" id="item-note" placeholder="輸入備註信息（如 需補貨、庫存充足）">
-                </div>
-                <button type="button" class="submit-btn" id="save-stock-btn">保存庫存修改</button>
             </form>
         </div>
     </div>
 
     <script>
-        // 初始化库存数据（从localStorage读取，无则用默认值）
-        let inventoryData = JSON.parse(localStorage.getItem('inventoryData')) || [
-            { id: 'SC-001', type: '十字槽螺絲', spec: 'M3 × 10', stock: 500, status: '有庫存', note: '常用型號' },
-            { id: 'SC-002', type: '內六角螺絲', spec: 'M5 × 20', stock: 80, status: '庫存偏低', note: '需補貨' },
-            { id: 'SC-003', type: '自攻螺絲', spec: 'M4 × 15', stock: 0, status: '無庫存', note: '已停產' },
-            { id: 'SC-004', type: '一字槽螺絲', spec: 'M2 × 8', stock: 1200, status: '有庫存', note: '庫存充足' }
-        ];
+        // ========== 数据初始化 ==========
+        // 1. Length列表（和inventory保持一致）
+        const lengthList = [];
+        for (let i = 6; i <= 14; i++) lengthList.push(i);
+        for (let i = 16; i <= 32; i += 2) lengthList.push(i);
 
-        // 获取DOM元素（删除了itemTypeInput）
-        const itemIdInput = document.getElementById('item-id');
-        const itemStockInput = document.getElementById('item-stock');
-        const itemNoteInput = document.getElementById('item-note');
-        const addStockBtn = document.getElementById('add-stock-btn');
-        const minusStockBtn = document.getElementById('minus-stock-btn');
-        const saveStockBtn = document.getElementById('save-stock-btn');
+        // 2. DOM元素
+        const lengthSelect = document.getElementById('length-select');
+        const catNoInput = document.getElementById('cat-no');
+        const adjustNumInput = document.getElementById('adjust-num');
+        const addBtn = document.getElementById('add-btn');
+        const minusBtn = document.getElementById('minus-btn');
 
-        // +号按钮逻辑：增加库存
-        addStockBtn.addEventListener('click', () => {
-            const itemId = itemIdInput.value.trim();
-            const adjustNum = parseInt(itemStockInput.value) || 0;
-            if (!itemId || adjustNum <= 0) {
-                alert('請輸入有效的Cat No.和調整數量（數量需大於0）！');
-                return;
-            }
-            // 查找对应项目
-            const targetItem = inventoryData.find(item => item.id === itemId);
-            if (!targetItem) {
-                alert(`未找到Cat No. ${itemId}，請確認編號正確！`);
-                return;
-            }
-            // 增加库存
-            targetItem.stock += adjustNum;
-            // 更新库存状态
-            updateStockStatus(targetItem);
-            // 保存到localStorage
-            localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
-            alert(`Cat No. ${itemId} 庫存已增加 ${adjustNum}，當前庫存：${targetItem.stock}`);
-            // 清空输入框
-            itemStockInput.value = '';
-        });
-
-        // -号按钮逻辑：减少库存
-        minusStockBtn.addEventListener('click', () => {
-            const itemId = itemIdInput.value.trim();
-            const adjustNum = parseInt(itemStockInput.value) || 0;
-            if (!itemId || adjustNum <= 0) {
-                alert('請輸入有效的Cat No.和調整數量（數量需大於0）！');
-                return;
-            }
-            // 查找对应项目
-            const targetItem = inventoryData.find(item => item.id === itemId);
-            if (!targetItem) {
-                alert(`未找到Cat No. ${itemId}，請確認編號正確！`);
-                return;
-            }
-            // 防止库存为负
-            if (targetItem.stock - adjustNum < 0) {
-                alert(`庫存不足！當前庫存：${targetItem.stock}，無法減少 ${adjustNum}`);
-                return;
-            }
-            // 减少库存
-            targetItem.stock -= adjustNum;
-            // 更新库存状态
-            updateStockStatus(targetItem);
-            // 保存到localStorage
-            localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
-            alert(`Cat No. ${itemId} 庫存已減少 ${adjustNum}，當前庫存：${targetItem.stock}`);
-            // 清空输入框
-            itemStockInput.value = '';
-        });
-
-        // 保存修改按钮逻辑（修改点3：删除itemType相关校验和赋值）
-        saveStockBtn.addEventListener('click', () => {
-            const itemId = itemIdInput.value.trim();
-            const itemStock = parseInt(itemStockInput.value) || 0;
-            const itemNote = itemNoteInput.value.trim();
-            
-            if (!itemId) { // 只校验Cat No.
-                alert('請填寫Cat No.！');
-                return;
-            }
-
-            // 查找对应项目
-            const targetItem = inventoryData.find(item => item.id === itemId);
-            if (targetItem) {
-                // 更新信息（仅更新库存和备注，保留原有类型）
-                targetItem.stock = itemStock;
-                targetItem.note = itemNote || targetItem.note;
-                // 更新库存状态
-                updateStockStatus(targetItem);
-            } else {
-                // 新增项目（类型默认空，不影响库存页显示）
-                const newItem = {
-                    id: itemId,
-                    type: '未分類', // 默认类型
-                    spec: '未知規格',
-                    stock: itemStock,
-                    status: updateStockStatus({ stock: itemStock }),
-                    note: itemNote || '新增項目'
-                };
-                inventoryData.push(newItem);
-            }
-
-            // 保存到localStorage
-            localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
-            alert('庫存修改保存成功！將返回庫存頁面');
-            // 跳回库存页
-            window.location.href = 'inventory.html';
-        });
-
-        // 辅助函数：更新库存状态
-        function updateStockStatus(item) {
-            if (item.stock <= 0) {
-                item.status = '無庫存';
-            } else if (item.stock < 100) {
-                item.status = '庫存偏低';
-            } else {
-                item.status = '有庫存';
-            }
-            return item.status;
+        // ========== 初始化长度选择框 ==========
+        function initLengthSelect() {
+            lengthList.forEach(len => {
+                const option = document.createElement('option');
+                option.value = len;
+                option.textContent = `${len} mm`;
+                lengthSelect.appendChild(option);
+            });
         }
+
+        // ========== 选择长度自动生成Cat No. ==========
+        lengthSelect.addEventListener('change', () => {
+            const selectedLen = lengthSelect.value;
+            if (!selectedLen) {
+                catNoInput.value = '';
+                return;
+            }
+            const catNo = `401.5${String(selectedLen).padStart(2, '0')}`;
+            catNoInput.value = catNo;
+        });
+
+        // ========== 库存调整逻辑 ==========
+        // 增加库存
+        addBtn.addEventListener('click', () => {
+            const catNo = catNoInput.value;
+            const adjustNum = parseInt(adjustNumInput.value) || 0;
+            
+            if (!catNo || adjustNum <= 0) {
+                alert('請選擇長度並輸入有效的調整數量！');
+                return;
+            }
+
+            // 调用inventory的全局函数更新库存
+            const result = window.opener.updateCortexStock(catNo, adjustNum);
+            if (!result) {
+                alert('庫存更新失敗，請確認Cat No.正確！');
+                return;
+            }
+
+            // 添加更改记录
+            window.opener.addCortexRecord(catNo, result.beforeStock, result.afterStock, result.length);
+            alert(`庫存增加成功！\nCat No. ${catNo}\n更改前：${result.beforeStock}\n更改後：${result.afterStock}`);
+            adjustNumInput.value = '';
+        });
+
+        // 减少库存
+        minusBtn.addEventListener('click', () => {
+            const catNo = catNoInput.value;
+            const adjustNum = parseInt(adjustNumInput.value) || 0;
+            
+            if (!catNo || adjustNum <= 0) {
+                alert('請選擇長度並輸入有效的調整數量！');
+                return;
+            }
+
+            // 调用inventory的全局函数更新库存（传负数）
+            const result = window.opener.updateCortexStock(catNo, -adjustNum);
+            if (!result) {
+                alert('庫存更新失敗，請確認Cat No.正確！');
+                return;
+            }
+
+            // 添加更改记录
+            window.opener.addCortexRecord(catNo, result.beforeStock, result.afterStock, result.length);
+            alert(`庫存減少成功！\nCat No. ${catNo}\n更改前：${result.beforeStock}\n更改後：${result.afterStock}`);
+            adjustNumInput.value = '';
+        });
+
+        // ========== 页面初始化 ==========
+        window.onload = () => {
+            initLengthSelect();
+            // 确保能访问inventory的全局函数
+            if (!window.opener) {
+                alert('請從inventory頁面打開此頁面！');
+                window.location.href = 'inventory.html';
+            }
+        };
     </script>
 </body>
 </html>
