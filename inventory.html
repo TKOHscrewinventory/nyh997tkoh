@@ -217,6 +217,11 @@
             color: #e74c3c;
             font-weight: bold;
         }
+        /* 负数库存高亮显示（可选，提升辨识度） */
+        .negative-stock {
+            color: #e74c3c;
+            font-weight: bold;
+        }
         .content-container {
             display: none;
         }
@@ -260,7 +265,6 @@
     </nav>
 
     <div class="main-layout">
-        <!-- 左侧分类栏：删除VA locking screw子菜单 -->
         <div class="category-sidebar">
             <h2>orthropedic stock item</h2>
             <ul class="category-list">
@@ -279,7 +283,6 @@
         <div class="table-container">
             <h2>Item stock</h2>
 
-            <!-- All Items 容器 -->
             <div id="all-container" class="content-container active">
                 <div class="hospital-section">
                     <div class="stock-alert">
@@ -304,7 +307,6 @@
                 </table>
             </div>
 
-            <!-- Cortex Screw 容器 -->
             <div id="cortex-container" class="content-container">
                 <h3>2.4Φ cortex screw 庫存表</h3>
                 <table class="screw-table">
@@ -320,7 +322,6 @@
                 </table>
             </div>
 
-            <!-- Locking Screw 容器 -->
             <div id="locking-container" class="content-container">
                 <h3>2.4Φ locking screw 庫存表</h3>
                 <table class="screw-table">
@@ -349,65 +350,60 @@
         setInterval(updateDateTime, 1000);
 
         // ========== 核心配置 ==========
-        // 1. Cortex Screw 长度规则：6-14mm(步长1)、16-32mm(步长2)
         const cortexLengthList = [];
         for (let i = 6; i <= 14; i++) cortexLengthList.push(i);
         for (let i = 16; i <= 32; i += 2) cortexLengthList.push(i);
 
-        // 2. Locking Screw 长度规则：6-14mm(步长1)、14-30mm(步长2) → 最终列表 6,7...14,16...30
         const lockingLengthList = [];
         for (let i = 6; i <= 14; i++) lockingLengthList.push(i);
         for (let i = 16; i <= 30; i += 2) lockingLengthList.push(i);
 
-        // 3. 产品类型配置（删除VA locking）
         const productTypes = [
             { key: 'cortex', name: '2.4Φ cortex screw', lengthList: cortexLengthList, catNoPrefix: '401.5' },
             { key: 'locking', name: '2.4Φ locking screw', lengthList: lockingLengthList, catNoPrefix: '412.8' }
         ];
 
         // ========== 数据初始化 ==========
-        // 初始化单类螺丝数据（按配置生成Cat No.）
         function initScrewData(type) {
             return type.lengthList.map(len => ({
                 catNo: `${type.catNoPrefix}${String(len).padStart(2, '0')}`,
                 length: len,
-                stock: 0,
+                stock: 0, // 初始库存为0，允许后续变为负数
                 status: '無庫存',
                 typeKey: type.key,
                 typeName: type.name
             }));
         }
 
-        // 读取/初始化所有螺丝数据
         let allScrewData = {};
         productTypes.forEach(type => {
             const storedData = JSON.parse(localStorage.getItem(`${type.key}Data`));
             allScrewData[type.key] = storedData || initScrewData(type);
         });
 
-        // 读取/初始化更改记录
         let changeRecords = JSON.parse(localStorage.getItem('changeRecords')) || [];
 
         // ========== 工具函数 ==========
-        // 更新库存状态
+        // 更新库存状态：负数/0 → 無庫存，0<库存<50 → 庫存偏低，≥50 → 有庫存
         function updateStatus(item) {
-            if (item.stock <= 0) item.status = '無庫存';
-            else if (item.stock < 50) item.status = '庫存偏低';
-            else item.status = '有庫存';
+            if (item.stock <= 0) {
+                item.status = '無庫存';
+            } else if (item.stock < 50) {
+                item.status = '庫存偏低';
+            } else {
+                item.status = '有庫存';
+            }
             return item;
         }
 
-        // 保存单类数据到本地
         function saveScrewData(typeKey) {
             localStorage.setItem(`${typeKey}Data`, JSON.stringify(allScrewData[typeKey]));
         }
 
-        // 保存更改记录
         function saveChangeRecords() {
             localStorage.setItem('changeRecords', JSON.stringify(changeRecords));
         }
 
-        // 获取所有库存偏低/无库存的项目
         function getAllLowStockItems() {
             let lowStock = [];
             productTypes.forEach(type => {
@@ -416,7 +412,6 @@
             return lowStock;
         }
 
-        // 获取所有Cat No.列表（供item change页面）
         function getAllCatNos() {
             let catNos = [];
             productTypes.forEach(type => {
@@ -426,7 +421,6 @@
         }
 
         // ========== 渲染函数 ==========
-        // 渲染库存紧张提示
         function renderAlertList() {
             const lowStockItems = getAllLowStockItems();
             const alertList = document.getElementById('alertItemList');
@@ -435,7 +429,6 @@
                 : lowStockItems.map(item => `<div class="alert-item">Cat No. ${item.catNo} (${item.typeName} ${item.length}mm) - 庫存${item.stock}，${item.status}</div>`).join('');
         }
 
-        // 渲染更改记录
         function renderChangeRecords() {
             const tbody = document.getElementById('changeRecordTableBody');
             tbody.innerHTML = changeRecords.length === 0
@@ -454,16 +447,18 @@
             changeRecords.reverse();
         }
 
-        // 渲染单类螺丝表格
+        // 渲染表格：负数库存添加高亮样式
         function renderScrewTable(typeKey) {
             const tbody = document.getElementById(`${typeKey}-table-body`);
             tbody.innerHTML = allScrewData[typeKey].map(item => {
                 const statusClass = item.status === '有庫存' ? 'status-in' : item.status === '庫存偏低' ? 'status-low' : 'status-out';
+                // 负数库存添加样式类
+                const stockClass = item.stock < 0 ? 'negative-stock' : '';
                 return `
                     <tr>
                         <td>${item.catNo}</td>
                         <td>${item.length}</td>
-                        <td>${item.stock}</td>
+                        <td class="${stockClass}">${item.stock}</td>
                         <td class="${statusClass}">${item.status}</td>
                     </tr>
                 `;
@@ -472,14 +467,10 @@
 
         // ========== 切换分类逻辑 ==========
         function switchContent(filterValue) {
-            // 隐藏所有容器
             document.querySelectorAll('.content-container').forEach(ctn => ctn.classList.remove('active'));
-            // 移除所有链接active类
             document.querySelectorAll('.category-item a').forEach(link => link.classList.remove('active'));
-            // 当前链接高亮
             event.target.classList.add('active');
 
-            // 切换对应内容
             if (filterValue === 'all') {
                 document.getElementById('all-container').classList.add('active');
                 renderAlertList();
@@ -490,21 +481,19 @@
             }
         }
 
-        // ========== 监听localStorage变化（同步item change页面修改） ==========
+        // ========== 监听localStorage变化 ==========
         window.addEventListener('storage', () => {
-            // 重新读取所有数据
             productTypes.forEach(type => {
                 allScrewData[type.key] = JSON.parse(localStorage.getItem(`${type.key}Data`)) || allScrewData[type.key];
             });
             changeRecords = JSON.parse(localStorage.getItem('changeRecords')) || changeRecords;
             
-            // 重新渲染
             renderAlertList();
             renderChangeRecords();
             productTypes.forEach(type => renderScrewTable(type.key));
         });
 
-        // ========== 暴露全局函数（供item change页面） ==========
+        // ========== 暴露全局函数 ==========
         window.getAllCatNos = getAllCatNos;
         window.getScrewItemByCatNo = (catNo) => {
             for (const typeKey in allScrewData) {
@@ -524,12 +513,9 @@
 
         // ========== 页面初始化 ==========
         window.onload = () => {
-            // 初始化所有表格
             productTypes.forEach(type => renderScrewTable(type.key));
-            // 初始化All Items
             renderAlertList();
             renderChangeRecords();
-            // 保存初始数据到本地
             productTypes.forEach(type => saveScrewData(type.key));
             saveChangeRecords();
         };
