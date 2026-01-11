@@ -90,7 +90,7 @@
             position: sticky;
             top: 80px;
         }
-        /* 左侧分类标题改为 orthropedic stock item */
+        /* 左侧分类标题保持 orthropedic stock item */
         .category-sidebar h2 {
             color: #2c3e50;
             font-size: 1.3rem;
@@ -195,17 +195,14 @@
 
     <!-- 主布局 -->
     <div class="main-layout">
-        <!-- 左侧分类栏 -->
+        <!-- 左侧分类栏：替换为3个新分类 -->
         <div class="category-sidebar">
-            <!-- 标题改为 orthropedic stock item -->
             <h2>orthropedic stock item</h2>
             <ul class="category-list">
-                <li class="category-item"><a href="#" class="active">全部螺絲 (All Screws)</a></li>
-                <li class="category-item"><a href="#">十字槽螺絲 (Cross Slot)</a></li>
-                <li class="category-item"><a href="#">內六角螺絲 (Hex Socket)</a></li>
-                <li class="category-item"><a href="#">一字槽螺絲 (Slotted)</a></li>
-                <li class="category-item"><a href="#">自攻螺絲 (Self-Tapping)</a></li>
-                <li class="category-item"><a href="#">緊固件配件 (Accessories)</a></li>
+                <li class="category-item"><a href="#" class="active">All Items</a></li>
+                <li class="category-item"><a href="#">Screws</a></li>
+                <li class="category-item"><a href="#">Plate</a></li>
+                <li class="category-item"><a href="#">Pins & K-wires</a></li>
             </ul>
         </div>
 
@@ -215,8 +212,8 @@
             <table class="inventory-table">
                 <thead>
                     <tr>
-                        <th>螺絲型號 (Screw ID)</th>
-                        <th>螺絲類型 (Type)</th>
+                        <th>Cat No.</th>
+                        <th>類型 (Type)</th>
                         <th>規格 (Spec) (mm)</th>
                         <th>stock balance（庫存餘額）</th>
                         <th>庫存狀態 (Status)</th>
@@ -231,23 +228,25 @@
     </div>
 
     <script>
-        // 从localStorage读取库存数据，无则用默认值
+        // 从localStorage读取库存数据，无则用默认值（更新type以匹配新分类）
         let inventoryData = JSON.parse(localStorage.getItem('inventoryData')) || [
-            { id: 'SC-001', type: '十字槽螺絲', spec: 'M3 × 10', stock: 500, status: '有庫存', note: '常用型號' },
-            { id: 'SC-002', type: '內六角螺絲', spec: 'M5 × 20', stock: 80, status: '庫存偏低', note: '需補貨' },
-            { id: 'SC-003', type: '自攻螺絲', spec: 'M4 × 15', stock: 0, status: '無庫存', note: '已停產' },
-            { id: 'SC-004', type: '一字槽螺絲', spec: 'M2 × 8', stock: 1200, status: '有庫存', note: '庫存充足' }
+            { id: 'SC-001', type: 'Screws', spec: 'M3 × 10', stock: 500, status: '有庫存', note: '常用型號' },
+            { id: 'SC-002', type: 'Screws', spec: 'M5 × 20', stock: 80, status: '庫存偏低', note: '需補貨' },
+            { id: 'PL-001', type: 'Plate', spec: '100×50×2', stock: 30, status: '有庫存', note: '不鏽鋼材質' },
+            { id: 'PK-001', type: 'Pins & K-wires', spec: 'Φ2×150', stock: 150, status: '有庫存', note: '骨科專用' },
+            { id: 'SC-003', type: 'Screws', spec: 'M4 × 15', stock: 0, status: '無庫存', note: '已停產' },
+            { id: 'PK-002', type: 'Pins & K-wires', spec: 'Φ1.5×120', stock: 50, status: '庫存偏低', note: '需補貨' }
         ];
 
         // 获取表格主体元素
         const tableBody = document.getElementById('inventory-table-body');
 
         // 初始化表格内容
-        function renderInventoryTable() {
+        function renderInventoryTable(filteredData = inventoryData) {
             // 清空原有内容
             tableBody.innerHTML = '';
             // 遍历库存数据生成表格行
-            inventoryData.forEach(item => {
+            filteredData.forEach(item => {
                 const tr = document.createElement('tr');
                 // 状态样式类
                 let statusClass = '';
@@ -267,7 +266,7 @@
             });
         }
 
-        // 分类点击高亮逻辑
+        // 分类点击高亮+筛选逻辑（适配新分类）
         const categoryLinks = document.querySelectorAll('.category-item a');
         categoryLinks.forEach(link => {
             link.addEventListener('click', (e) => {
@@ -276,30 +275,14 @@
                 categoryLinks.forEach(l => l.classList.remove('active'));
                 // 给当前点击的加active类
                 link.classList.add('active');
-                // 简单分类筛选（可选扩展）
-                const categoryText = link.textContent;
-                if (categoryText.includes('全部')) {
+                // 筛选逻辑：匹配新分类名
+                const category = link.textContent;
+                if (category === 'All Items') {
                     renderInventoryTable(); // 显示全部
                 } else {
-                    // 筛选对应类型
-                    const filteredData = inventoryData.filter(item => 
-                        item.type.includes(categoryText.split('(')[0].trim())
-                    );
-                    // 重新渲染筛选后的表格
-                    tableBody.innerHTML = '';
-                    filteredData.forEach(item => {
-                        const tr = document.createElement('tr');
-                        let statusClass = item.status === '有庫存' ? 'status-in' : item.status === '庫存偏低' ? 'status-low' : 'status-out';
-                        tr.innerHTML = `
-                            <td>${item.id}</td>
-                            <td>${item.type}</td>
-                            <td>${item.spec}</td>
-                            <td>${item.stock}</td>
-                            <td><span class="stock-status ${statusClass}">${item.status}</span></td>
-                            <td>${item.note}</td>
-                        `;
-                        tableBody.appendChild(tr);
-                    });
+                    // 筛选type等于当前分类的项目
+                    const filteredData = inventoryData.filter(item => item.type === category);
+                    renderInventoryTable(filteredData);
                 }
             });
         });
