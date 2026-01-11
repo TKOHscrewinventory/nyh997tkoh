@@ -19,7 +19,7 @@
             line-height: 1.6;
         }
 
-        /* 导航栏（核心修改：加入日期时间布局） */
+        /* 导航栏样式 */
         nav {
             background-color: #2c3e50;
             color: white;
@@ -40,21 +40,16 @@
         .logo {
             font-size: 1.5rem;
             font-weight: bold;
-            /* 左对齐 */
             flex-shrink: 0;
         }
-        /* 日期时间样式（蓝色导航栏内） */
         #datetimeDisplay {
             font-size: 0.9rem;
             color: #fff;
-            /* 中间显示 */
             text-align: center;
         }
-        /* 导航按钮容器样式 */
         .nav-buttons {
             display: flex;
             gap: 1rem;
-            /* 右对齐 */
             flex-shrink: 0;
         }
         .item-change-btn {
@@ -91,7 +86,7 @@
             gap: 2rem;
         }
 
-        /* 左侧分类栏 */
+        /* 左侧分类栏 - 核心修改：展开折叠样式 */
         .category-sidebar {
             width: 250px;
             background-color: white;
@@ -113,9 +108,39 @@
             list-style: none;
         }
         .category-item {
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
-        .category-item a {
+        /* 父分类样式（带展开折叠） */
+        .parent-category > a {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .parent-category > a::after {
+            content: "+";
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+        .parent-category.expanded > a::after {
+            content: "-";
+        }
+        /* 子分类样式 */
+        .sub-category-list {
+            list-style: none;
+            margin-left: 1.5rem;
+            margin-top: 0.3rem;
+            margin-bottom: 0.8rem;
+            display: none; /* 默认折叠 */
+        }
+        .parent-category.expanded .sub-category-list {
+            display: block; /* 展开显示 */
+        }
+        .sub-category-item {
+            margin-bottom: 0.5rem;
+        }
+        /* 通用链接样式 */
+        .category-item a, .sub-category-item a {
             text-decoration: none;
             color: #333;
             font-size: 1rem;
@@ -124,7 +149,8 @@
             border-radius: 4px;
             transition: background-color 0.3s;
         }
-        .category-item a:hover, .category-item a.active {
+        .category-item a:hover, .category-item a.active,
+        .sub-category-item a:hover, .sub-category-item a.active {
             background-color: #3498db;
             color: white;
         }
@@ -217,7 +243,6 @@
                 width: 100%;
                 position: static;
             }
-            /* 手机端导航栏换行 */
             .nav-container {
                 flex-direction: column;
                 gap: 0.8rem;
@@ -231,11 +256,10 @@
     </style>
 </head>
 <body>
-    <!-- 导航栏（日期时间移到此处） -->
+    <!-- 导航栏 -->
     <nav>
         <div class="nav-container">
             <div class="logo">TKOHscrewinventory</div>
-            <!-- 日期时间显示区域：移到导航栏内 -->
             <div id="datetimeDisplay"></div>
             <div class="nav-buttons">
                 <button class="item-change-btn" onclick="window.location.href='item-change.html'">item change</button>
@@ -246,14 +270,34 @@
 
     <!-- 主布局 -->
     <div class="main-layout">
-        <!-- 左侧分类栏 -->
+        <!-- 左侧分类栏 - 核心修改：Screws添加子分项 -->
         <div class="category-sidebar">
             <h2>orthropedic stock item</h2>
             <ul class="category-list">
-                <li class="category-item"><a href="#" class="active">All Items</a></li>
-                <li class="category-item"><a href="#">Screws</a></li>
-                <li class="category-item"><a href="#">Plate</a></li>
-                <li class="category-item"><a href="#">Pins & K-wires</a></li>
+                <li class="category-item">
+                    <a href="#" class="active" data-filter="all">All Items</a>
+                </li>
+                <!-- Screws父分类：带展开折叠子菜单 -->
+                <li class="category-item parent-category" id="screwsParent">
+                    <a href="#" data-filter="screws">Screws</a>
+                    <ul class="sub-category-list" id="screwsSubList">
+                        <li class="sub-category-item">
+                            <a href="#" data-filter="2.4mm cortex screw">2.4mm cortex screw</a>
+                        </li>
+                        <li class="sub-category-item">
+                            <a href="#" data-filter="2.4mm locking screw">2.4mm locking screw</a>
+                        </li>
+                        <li class="sub-category-item">
+                            <a href="#" data-filter="2.4mm VA locking screw">2.4mm VA locking screw</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="category-item">
+                    <a href="#" data-filter="Plate">Plate</a>
+                </li>
+                <li class="category-item">
+                    <a href="#" data-filter="Pins & K-wires">Pins & K-wires</a>
+                </li>
             </ul>
         </div>
 
@@ -261,7 +305,7 @@
         <div class="table-container">
             <h2>Screw Inventory 螺絲庫存表</h2>
 
-            <!-- 库存紧张提示区域（繁体中文） -->
+            <!-- 库存紧张提示区域 -->
             <div class="hospital-section" id="hospitalSection">
                 <div class="stock-alert">
                     <h3>⚠️ 庫存緊張項目（需補貨）</h3>
@@ -289,44 +333,40 @@
     </div>
 
     <script>
-        // 实时更新日期时间函数（24小时制，格式：日期/月份/年份 时:分:秒）
+        // 实时更新日期时间函数
         function updateDateTime() {
             const now = new Date();
-            // 获取日期/月份/年份（补零到2位）
             const day = String(now.getDate()).padStart(2, '0');
-            const month = String(now.getMonth() + 1).padStart(2, '0'); // 月份从0开始，+1
+            const month = String(now.getMonth() + 1).padStart(2, '0');
             const year = now.getFullYear();
-            // 获取24小时制时间（补零到2位）
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
-            // 拼接格式：日期/月份/年份 时:分:秒
             const datetimeStr = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-            // 显示到导航栏内的元素
             document.getElementById('datetimeDisplay').textContent = datetimeStr;
         }
-
-        // 页面加载时执行一次，然后每秒更新
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
-        // 库存数据逻辑
+        // 库存数据：添加子类型相关的spec，匹配子分项
         let inventoryData = JSON.parse(localStorage.getItem('inventoryData')) || [
-            { id: 'SC-001', type: 'Screws', spec: 'M3 × 10', stock: 500, status: '有庫存', note: '常用型號' },
-            { id: 'SC-002', type: 'Screws', spec: 'M5 × 20', stock: 80, status: '庫存偏低', note: '需補貨' },
+            { id: 'SC-001', type: 'Screws', spec: '2.4mm cortex screw', stock: 500, status: '有庫存', note: '常用型號' },
+            { id: 'SC-002', type: 'Screws', spec: '2.4mm locking screw', stock: 80, status: '庫存偏低', note: '需補貨' },
+            { id: 'SC-003', type: 'Screws', spec: '2.4mm VA locking screw', stock: 120, status: '有庫存', note: '骨科專用' },
+            { id: 'SC-004', type: 'Screws', spec: '3.0mm cortex screw', stock: 0, status: '無庫存', note: '已停產' },
             { id: 'PL-001', type: 'Plate', spec: '100×50×2', stock: 30, status: '有庫存', note: '不鏽鋼材質' },
             { id: 'PK-001', type: 'Pins & K-wires', spec: 'Φ2×150', stock: 150, status: '有庫存', note: '骨科專用' },
-            { id: 'SC-003', type: 'Screws', spec: 'M4 × 15', stock: 0, status: '無庫存', note: '已停產' },
             { id: 'PK-002', type: 'Pins & K-wires', spec: 'Φ1.5×120', stock: 50, status: '庫存偏低', note: '需補貨' }
         ];
 
-        // 获取DOM元素
+        // DOM元素
         const tableBody = document.getElementById('inventory-table-body');
         const hospitalSection = document.getElementById('hospitalSection');
         const alertItemList = document.getElementById('alertItemList');
-        const categoryLinks = document.querySelectorAll('.category-item a');
+        const screwsParent = document.getElementById('screwsParent');
+        const allLinks = document.querySelectorAll('.category-item a, .sub-category-item a');
 
-        // 初始化表格内容
+        // 渲染表格
         function renderInventoryTable(filteredData = inventoryData) {
             tableBody.innerHTML = '';
             filteredData.forEach(item => {
@@ -344,7 +384,7 @@
             });
         }
 
-        // 生成库存紧张提示列表（繁体中文）
+        // 渲染库存紧张提示
         function renderAlertList() {
             const lowStockItems = inventoryData.filter(item => item.status === '庫存偏低');
             alertItemList.innerHTML = '';
@@ -360,25 +400,60 @@
             });
         }
 
-        // 分类点击逻辑
-        categoryLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                categoryLinks.forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-                if (link.textContent === 'All Items') {
+        // 核心：分类筛选逻辑（支持父分类和子分类）
+        function handleFilter(filterValue) {
+            // 移除所有active类
+            allLinks.forEach(link => link.classList.remove('active'));
+            // 给当前点击的链接加active
+            event.target.classList.add('active');
+
+            let filteredData;
+            switch(filterValue) {
+                case 'all':
                     hospitalSection.style.display = 'block';
                     renderAlertList();
-                    renderInventoryTable();
-                } else {
+                    filteredData = inventoryData;
+                    break;
+                case 'screws':
                     hospitalSection.style.display = 'none';
-                    const filteredData = inventoryData.filter(item => item.type === link.textContent);
-                    renderInventoryTable(filteredData);
+                    filteredData = inventoryData.filter(item => item.type === 'Screws');
+                    break;
+                case 'Plate':
+                    hospitalSection.style.display = 'none';
+                    filteredData = inventoryData.filter(item => item.type === 'Plate');
+                    break;
+                case 'Pins & K-wires':
+                    hospitalSection.style.display = 'none';
+                    filteredData = inventoryData.filter(item => item.type === 'Pins & K-wires');
+                    break;
+                default:
+                    // 子分类筛选：匹配spec
+                    hospitalSection.style.display = 'none';
+                    filteredData = inventoryData.filter(item => item.spec === filterValue);
+                    break;
+            }
+            renderInventoryTable(filteredData);
+        }
+
+        // 绑定父分类点击事件（展开折叠）
+        screwsParent.querySelector('a').addEventListener('click', (e) => {
+            e.preventDefault();
+            screwsParent.classList.toggle('expanded');
+            // 执行父分类筛选
+            handleFilter(e.target.dataset.filter);
+        });
+
+        // 绑定所有分类链接点击事件
+        allLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (!link.closest('.parent-category') || link.closest('.sub-category-item')) {
+                    e.preventDefault();
+                    handleFilter(link.dataset.filter);
                 }
             });
         });
 
-        // 页面加载初始化
+        // 页面初始化
         window.onload = () => {
             hospitalSection.style.display = 'block';
             renderAlertList();
