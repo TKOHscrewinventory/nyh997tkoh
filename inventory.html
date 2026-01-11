@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -270,14 +271,14 @@
 
     <!-- 主布局 -->
     <div class="main-layout">
-        <!-- 左侧分类栏 - 修改子分项文本：mm→Φ -->
+        <!-- 左侧分类栏 -->
         <div class="category-sidebar">
             <h2>orthropedic stock item</h2>
             <ul class="category-list">
                 <li class="category-item">
                     <a href="#" class="active" data-filter="all">All Items</a>
                 </li>
-                <!-- Screws父分类：子分项mm→Φ -->
+                <!-- Screws父分类 -->
                 <li class="category-item parent-category" id="screwsParent">
                     <a href="#" data-filter="screws">Screws</a>
                     <ul class="sub-category-list" id="screwsSubList">
@@ -303,7 +304,8 @@
 
         <!-- 右侧表格区域 -->
         <div class="table-container">
-            <h2>Screw Inventory 螺絲庫存表</h2>
+            <!-- 核心修改：标题替换为 Item stock -->
+            <h2>Item stock</h2>
 
             <!-- 库存紧张提示区域 -->
             <div class="hospital-section" id="hospitalSection">
@@ -348,7 +350,7 @@
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
-        // 库存数据：1. 删除SC-004项目  2. 所有2.4mm→2.4Φ
+        // 库存数据
         let inventoryData = JSON.parse(localStorage.getItem('inventoryData')) || [
             { id: 'SC-001', type: 'Screws', spec: '2.4Φ cortex screw', stock: 500, status: '有庫存', note: '常用型號' },
             { id: 'SC-002', type: 'Screws', spec: '2.4Φ locking screw', stock: 80, status: '庫存偏低', note: '需補貨' },
@@ -401,9 +403,7 @@
 
         // 核心：分类筛选逻辑
         function handleFilter(filterValue) {
-            // 移除所有active类
             allLinks.forEach(link => link.classList.remove('active'));
-            // 给当前点击的链接加active
             event.target.classList.add('active');
 
             let filteredData;
@@ -426,7 +426,6 @@
                     filteredData = inventoryData.filter(item => item.type === 'Pins & K-wires');
                     break;
                 default:
-                    // 子分类筛选：匹配spec
                     hospitalSection.style.display = 'none';
                     filteredData = inventoryData.filter(item => item.spec === filterValue);
                     break;
@@ -438,7 +437,6 @@
         screwsParent.querySelector('a').addEventListener('click', (e) => {
             e.preventDefault();
             screwsParent.classList.toggle('expanded');
-            // 执行父分类筛选
             handleFilter(e.target.dataset.filter);
         });
 
