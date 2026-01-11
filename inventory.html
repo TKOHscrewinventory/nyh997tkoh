@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Screw Inventory 螺絲庫存表</title>
+    <title>Item stock</title>
     <style>
         /* 全局样式重置 */
         * {
@@ -156,7 +155,7 @@
             color: white;
         }
 
-        /* 右侧表格区域 */
+        /* 右侧内容区域 */
         .table-container {
             flex: 1;
             background-color: white;
@@ -170,10 +169,17 @@
             margin-bottom: 1.5rem;
             text-align: center;
         }
+        .table-container h3 {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            margin: 1.5rem 0;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
 
         /* 库存紧张提示区域样式 */
         .hospital-section {
-            display: none; /* 默认隐藏，All Items选中时显示 */
             margin-bottom: 2rem;
             text-align: center;
             padding-bottom: 1rem;
@@ -199,40 +205,73 @@
             border-left: 3px solid #f8c929;
         }
 
-        /* 库存表格样式 */
-        .inventory-table {
+        /* 库存更改记录表格样式（All Items显示） */
+        .change-record-table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 2rem;
         }
-        .inventory-table th, .inventory-table td {
+        .change-record-table th, .change-record-table td {
             padding: 1rem;
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
-        .inventory-table th {
+        .change-record-table th {
             background-color: #2c3e50;
             color: white;
         }
-        .inventory-table tr:hover {
+        .change-record-table tr:hover {
             background-color: #f1f1f1;
         }
-        .stock-status {
-            padding: 0.3rem 0.6rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
+        .operation-add {
+            color: #2ecc71;
             font-weight: bold;
         }
-        .status-in {
-            background-color: #2ecc71;
+        .operation-sub {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        /* 2.4Φ子分类专属表格样式 */
+        .screw-sub-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+        .screw-sub-table th, .screw-sub-table td {
+            padding: 0.8rem 1rem;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        .screw-sub-table th {
+            background-color: #2c3e50;
             color: white;
+        }
+        .screw-sub-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .screw-sub-table tr:hover {
+            background-color: #e9ecef;
+        }
+        .status-in {
+            color: #2ecc71;
+            font-weight: bold;
         }
         .status-low {
-            background-color: #f8c929;
-            color: white;
+            color: #f39c12;
+            font-weight: bold;
         }
         .status-out {
-            background-color: #e74c3c;
-            color: white;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        /* 容器显示隐藏控制 */
+        .content-container {
+            display: none;
+        }
+        .content-container.active {
+            display: block;
         }
 
         /* 响应式适配 */
@@ -252,6 +291,10 @@
             .nav-buttons {
                 width: 100%;
                 justify-content: center;
+            }
+            .screw-sub-table th, .screw-sub-table td {
+                padding: 0.6rem 0.4rem;
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -276,20 +319,20 @@
             <h2>orthropedic stock item</h2>
             <ul class="category-list">
                 <li class="category-item">
-                    <a href="#" class="active" data-filter="all">All Items</a>
+                    <a href="#" data-filter="all" class="active">All Items</a>
                 </li>
                 <!-- Screws父分类 -->
                 <li class="category-item parent-category" id="screwsParent">
                     <a href="#" data-filter="screws">Screws</a>
                     <ul class="sub-category-list" id="screwsSubList">
                         <li class="sub-category-item">
-                            <a href="#" data-filter="2.4Φ cortex screw">2.4Φ cortex screw</a>
+                            <a href="#" data-filter="cortex">2.4Φ cortex screw</a>
                         </li>
                         <li class="sub-category-item">
-                            <a href="#" data-filter="2.4Φ locking screw">2.4Φ locking screw</a>
+                            <a href="#" data-filter="locking">2.4Φ locking screw</a>
                         </li>
                         <li class="sub-category-item">
-                            <a href="#" data-filter="2.4Φ VA locking screw">2.4Φ VA locking screw</a>
+                            <a href="#" data-filter="valocking">2.4Φ VA locking screw</a>
                         </li>
                     </ul>
                 </li>
@@ -302,35 +345,101 @@
             </ul>
         </div>
 
-        <!-- 右侧表格区域 -->
+        <!-- 右侧内容区域 -->
         <div class="table-container">
-            <!-- 核心修改：标题替换为 Item stock -->
             <h2>Item stock</h2>
 
-            <!-- 库存紧张提示区域 -->
-            <div class="hospital-section" id="hospitalSection">
-                <div class="stock-alert">
-                    <h3>⚠️ 庫存緊張項目（需補貨）</h3>
-                    <div id="alertItemList"></div>
+            <!-- 1. All Items 内容：库存紧张+更改记录 -->
+            <div id="all-container" class="content-container active">
+                <!-- 库存紧张提示区域 -->
+                <div class="hospital-section">
+                    <div class="stock-alert">
+                        <h3>⚠️ 庫存緊張項目（需補貨）</h3>
+                        <div id="alertItemList"></div>
+                    </div>
                 </div>
+                <!-- 更改记录表格 -->
+                <h3>最近5項庫存更改記錄</h3>
+                <table class="change-record-table">
+                    <thead>
+                        <tr>
+                            <th>操作時間</th>
+                            <th>Cat No.</th>
+                            <th>類型 (Type)</th>
+                            <th>規格 (Spec)</th>
+                            <th>更改前庫存</th>
+                            <th>更改後庫存</th>
+                            <th>操作類型</th>
+                        </tr>
+                    </thead>
+                    <tbody id="changeRecordTableBody"></tbody>
+                </table>
             </div>
 
-            <!-- 库存表格 -->
-            <table class="inventory-table">
-                <thead>
-                    <tr>
-                        <th>Cat No.</th>
-                        <th>類型 (Type)</th>
-                        <th>規格 (Spec) (mm)</th>
-                        <th>stock balance（庫存餘額）</th>
-                        <th>庫存狀態 (Status)</th>
-                        <th>備註 (Remarks)</th>
-                    </tr>
-                </thead>
-                <tbody id="inventory-table-body">
-                    <!-- 表格内容由JS动态生成 -->
-                </tbody>
-            </table>
+            <!-- 2. 2.4Φ cortex screw 专属表格 -->
+            <div id="cortex-container" class="content-container">
+                <h3>2.4Φ cortex screw 庫存表</h3>
+                <table class="screw-sub-table">
+                    <thead>
+                        <tr>
+                            <th>Cat No.</th>
+                            <th>Length (mm)</th>
+                            <th>stock balance</th>
+                            <th>status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cortex-table-body"></tbody>
+                </table>
+            </div>
+
+            <!-- 3. 2.4Φ locking screw 专属表格 -->
+            <div id="locking-container" class="content-container">
+                <h3>2.4Φ locking screw 庫存表</h3>
+                <table class="screw-sub-table">
+                    <thead>
+                        <tr>
+                            <th>Cat No.</th>
+                            <th>Length (mm)</th>
+                            <th>stock balance</th>
+                            <th>status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="locking-table-body"></tbody>
+                </table>
+            </div>
+
+            <!-- 4. 2.4Φ VA locking screw 专属表格 -->
+            <div id="valocking-container" class="content-container">
+                <h3>2.4Φ VA locking screw 庫存表</h3>
+                <table class="screw-sub-table">
+                    <thead>
+                        <tr>
+                            <th>Cat No.</th>
+                            <th>Length (mm)</th>
+                            <th>stock balance</th>
+                            <th>status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="valocking-table-body"></tbody>
+                </table>
+            </div>
+
+            <!-- 5. 其他分类内容：Plate/Pins & K-wires 原表格 -->
+            <div id="other-container" class="content-container">
+                <table class="screw-sub-table">
+                    <thead>
+                        <tr>
+                            <th>Cat No.</th>
+                            <th>類型 (Type)</th>
+                            <th>規格 (Spec) (mm)</th>
+                            <th>stock balance（庫存餘額）</th>
+                            <th>庫存狀態 (Status)</th>
+                            <th>備註 (Remarks)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table-body"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -350,25 +459,115 @@
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
-        // 库存数据
-        let inventoryData = JSON.parse(localStorage.getItem('inventoryData')) || [
-            { id: 'SC-001', type: 'Screws', spec: '2.4Φ cortex screw', stock: 500, status: '有庫存', note: '常用型號' },
-            { id: 'SC-002', type: 'Screws', spec: '2.4Φ locking screw', stock: 80, status: '庫存偏低', note: '需補貨' },
-            { id: 'SC-003', type: 'Screws', spec: '2.4Φ VA locking screw', stock: 120, status: '有庫存', note: '骨科專用' },
+        // ========== 数据定义 ==========
+        // 1. 生成Length列表（6-14mm每1mm，16-32mm每2mm）
+        const lengthList = [];
+        // 6-14mm
+        for (let i = 6; i <= 14; i++) lengthList.push(i);
+        // 16-32mm
+        for (let i = 16; i <= 32; i += 2) lengthList.push(i);
+
+        // 2. 生成2.4Φ螺丝基础数据（按Length生成Cat No.和默认库存）
+        function generateScrewData(type) {
+            return lengthList.map(len => {
+                const catNo = `401.5${String(len).padStart(2, '0')}`;
+                // 随机生成库存和状态，模拟真实数据
+                const stock = Math.floor(Math.random() * 200);
+                let status = '有庫存';
+                if (stock === 0) status = '無庫存';
+                else if (stock < 50) status = '庫存偏低';
+                return { catNo, length: len, stock, status, type };
+            });
+        }
+        // 三个子分类数据
+        const cortexData = generateScrewData('2.4Φ cortex screw');
+        const lockingData = generateScrewData('2.4Φ locking screw');
+        const valockingData = generateScrewData('2.4Φ VA locking screw');
+
+        // 3. 其他分类数据（Plate/Pins & K-wires）
+        const otherData = [
             { id: 'PL-001', type: 'Plate', spec: '100×50×2', stock: 30, status: '有庫存', note: '不鏽鋼材質' },
             { id: 'PK-001', type: 'Pins & K-wires', spec: 'Φ2×150', stock: 150, status: '有庫存', note: '骨科專用' },
             { id: 'PK-002', type: 'Pins & K-wires', spec: 'Φ1.5×120', stock: 50, status: '庫存偏低', note: '需補貨' }
         ];
 
-        // DOM元素
-        const tableBody = document.getElementById('inventory-table-body');
-        const hospitalSection = document.getElementById('hospitalSection');
-        const alertItemList = document.getElementById('alertItemList');
-        const screwsParent = document.getElementById('screwsParent');
-        const allLinks = document.querySelectorAll('.category-item a, .sub-category-item a');
+        // 4. 库存紧张数据（提取所有库存偏低/无库存项目）
+        function getLowStockItems() {
+            const allItems = [...cortexData, ...lockingData, ...valockingData, ...otherData];
+            return allItems.filter(item => item.status === '庫存偏低' || item.status === '無庫存');
+        }
 
-        // 渲染表格
-        function renderInventoryTable(filteredData = inventoryData) {
+        // 5. 库存更改记录数据
+        let changeRecords = JSON.parse(localStorage.getItem('changeRecords')) || [
+            { time: '11/01/2026 10:20:30', id: '401.508', type: '2.4Φ cortex screw', spec: '8mm', beforeStock: 60, afterStock: 50, operation: '減庫存' },
+            { time: '11/01/2026 11:15:45', id: '401.516', type: '2.4Φ locking screw', spec: '16mm', beforeStock: 30, afterStock: 80, operation: '加庫存' }
+        ];
+
+        // ========== 渲染函数 ==========
+        // 1. 渲染库存紧张提示
+        function renderAlertList() {
+            const lowStockItems = getLowStockItems();
+            const alertItemList = document.getElementById('alertItemList');
+            alertItemList.innerHTML = '';
+            if (lowStockItems.length === 0) {
+                alertItemList.innerHTML = '<div class="alert-item">暫無庫存緊張項目</div>';
+                return;
+            }
+            lowStockItems.forEach(item => {
+                const alertItem = document.createElement('div');
+                alertItem.className = 'alert-item';
+                alertItem.textContent = `Cat No. ${item.catNo || item.id} (${item.type}) - 庫存${item.stock}，${item.status}`;
+                alertItemList.appendChild(alertItem);
+            });
+        }
+
+        // 2. 渲染更改记录表格
+        function renderChangeRecords() {
+            const tableBody = document.getElementById('changeRecordTableBody');
+            tableBody.innerHTML = '';
+            if (changeRecords.length === 0) {
+                tableBody.innerHTML = '<td colspan="7" style="text-align: center; color: #666;">暫無庫存更改記錄</td>';
+                return;
+            }
+            changeRecords.reverse().forEach(record => {
+                const tr = document.createElement('tr');
+                const operationClass = record.operation === '加庫存' ? 'operation-add' : 'operation-sub';
+                tr.innerHTML = `
+                    <td>${record.time}</td>
+                    <td>${record.id}</td>
+                    <td>${record.type}</td>
+                    <td>${record.spec}</td>
+                    <td>${record.beforeStock}</td>
+                    <td>${record.afterStock}</td>
+                    <td class="${operationClass}">${record.operation}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+            changeRecords.reverse();
+        }
+
+        // 3. 渲染2.4Φ子分类表格（通用函数）
+        function renderScrewTable(data, tableId) {
+            const tableBody = document.getElementById(tableId);
+            tableBody.innerHTML = '';
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                let statusClass = 'status-in';
+                if (item.status === '庫存偏低') statusClass = 'status-low';
+                else if (item.status === '無庫存') statusClass = 'status-out';
+                tr.innerHTML = `
+                    <td>${item.catNo}</td>
+                    <td>${item.length}</td>
+                    <td>${item.stock}</td>
+                    <td class="${statusClass}">${item.status}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // 4. 渲染其他分类表格（Plate/Pins & K-wires）
+        function renderOtherTable(filteredData) {
+            const tableBody = document.getElementById('inventory-table-body');
             tableBody.innerHTML = '';
             filteredData.forEach(item => {
                 const tr = document.createElement('tr');
@@ -378,83 +577,104 @@
                     <td>${item.type}</td>
                     <td>${item.spec}</td>
                     <td>${item.stock}</td>
-                    <td><span class="stock-status ${statusClass}">${item.status}</span></td>
+                    <td class="${statusClass}">${item.status}</td>
                     <td>${item.note}</td>
                 `;
                 tableBody.appendChild(tr);
             });
         }
 
-        // 渲染库存紧张提示
-        function renderAlertList() {
-            const lowStockItems = inventoryData.filter(item => item.status === '庫存偏低');
-            alertItemList.innerHTML = '';
-            if (lowStockItems.length === 0) {
-                alertItemList.innerHTML = '<div class="alert-item">暫無庫存緊張項目</div>';
-                return;
-            }
-            lowStockItems.forEach(item => {
-                const alertItem = document.createElement('div');
-                alertItem.className = 'alert-item';
-                alertItem.textContent = `Cat No. ${item.id} (${item.type}) - 庫存${item.stock}，需補貨`;
-                alertItemList.appendChild(alertItem);
+        // ========== 核心切换逻辑 ==========
+        function switchContent(filterValue) {
+            // 隐藏所有容器
+            document.querySelectorAll('.content-container').forEach(container => {
+                container.classList.remove('active');
             });
-        }
-
-        // 核心：分类筛选逻辑
-        function handleFilter(filterValue) {
-            allLinks.forEach(link => link.classList.remove('active'));
+            // 移除所有链接active类
+            document.querySelectorAll('.category-item a, .sub-category-item a').forEach(link => {
+                link.classList.remove('active');
+            });
+            // 给当前点击链接加active
             event.target.classList.add('active');
 
-            let filteredData;
+            // 切换对应容器
             switch(filterValue) {
                 case 'all':
-                    hospitalSection.style.display = 'block';
+                    document.getElementById('all-container').classList.add('active');
                     renderAlertList();
-                    filteredData = inventoryData;
+                    renderChangeRecords();
                     break;
-                case 'screws':
-                    hospitalSection.style.display = 'none';
-                    filteredData = inventoryData.filter(item => item.type === 'Screws');
+                case 'cortex':
+                    document.getElementById('cortex-container').classList.add('active');
+                    renderScrewTable(cortexData, 'cortex-table-body');
+                    break;
+                case 'locking':
+                    document.getElementById('locking-container').classList.add('active');
+                    renderScrewTable(lockingData, 'locking-table-body');
+                    break;
+                case 'valocking':
+                    document.getElementById('valocking-container').classList.add('active');
+                    renderScrewTable(valockingData, 'valocking-table-body');
                     break;
                 case 'Plate':
-                    hospitalSection.style.display = 'none';
-                    filteredData = inventoryData.filter(item => item.type === 'Plate');
+                    document.getElementById('other-container').classList.add('active');
+                    renderOtherTable(otherData.filter(item => item.type === 'Plate'));
                     break;
                 case 'Pins & K-wires':
-                    hospitalSection.style.display = 'none';
-                    filteredData = inventoryData.filter(item => item.type === 'Pins & K-wires');
+                    document.getElementById('other-container').classList.add('active');
+                    renderOtherTable(otherData.filter(item => item.type === 'Pins & K-wires'));
                     break;
-                default:
-                    hospitalSection.style.display = 'none';
-                    filteredData = inventoryData.filter(item => item.spec === filterValue);
+                case 'screws':
+                    // 点击Screws父分类：默认选中第一个子项
+                    document.querySelector('[data-filter="cortex"]').click();
                     break;
             }
-            renderInventoryTable(filteredData);
         }
 
-        // 绑定父分类点击事件（展开折叠）
+        // ========== 事件绑定 ==========
+        // 1. Screws父分类展开折叠
+        const screwsParent = document.getElementById('screwsParent');
         screwsParent.querySelector('a').addEventListener('click', (e) => {
             e.preventDefault();
             screwsParent.classList.toggle('expanded');
-            handleFilter(e.target.dataset.filter);
+            switchContent(e.target.dataset.filter);
         });
 
-        // 绑定所有分类链接点击事件
-        allLinks.forEach(link => {
+        // 2. 所有分类链接点击
+        document.querySelectorAll('.category-item a, .sub-category-item a').forEach(link => {
             link.addEventListener('click', (e) => {
-                if (!link.closest('.parent-category') || link.closest('.sub-category-item')) {
-                    e.preventDefault();
-                    handleFilter(link.dataset.filter);
-                }
+                e.preventDefault();
+                switchContent(link.dataset.filter);
             });
         });
 
-        // 页面初始化
+        // ========== 页面初始化 ==========
         window.onload = () => {
-            hospitalSection.style.display = 'block';
             renderAlertList();
-            renderInventoryTable();
+            renderChangeRecords();
+            // 初始化三个子分类表格
+            renderScrewTable(cortexData, 'cortex-table-body');
+            renderScrewTable(lockingData, 'locking-table-body');
+            renderScrewTable(valockingData, 'valocking-table-body');
+        };
+
+        // 3. 添加更改记录函数（供item-change页面调用）
+        window.addChangeRecord = function(itemId, beforeStock, afterStock, type, spec) {
+            const now = new Date();
+            const timeStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            const newRecord = {
+                time: timeStr,
+                id: itemId,
+                type: type,
+                spec: spec,
+                beforeStock: beforeStock,
+                afterStock: afterStock,
+                operation: afterStock > beforeStock ? '加庫存' : '減庫存'
+            };
+            if (changeRecords.length >= 5) changeRecords.shift();
+            changeRecords.push(newRecord);
+            localStorage.setItem('changeRecords', JSON.stringify(changeRecords));
+            renderChangeRecords();
         };
     </script>
 </body>
