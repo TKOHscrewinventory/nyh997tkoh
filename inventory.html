@@ -132,19 +132,13 @@
             text-align: center;
         }
 
-        /* 新增：医院图标+补货提示区域样式 */
+        /* 库存紧张提示区域样式（删除了图标相关样式） */
         .hospital-section {
             display: none; /* 默认隐藏，All Items选中时显示 */
             margin-bottom: 2rem;
             text-align: center;
             padding-bottom: 1rem;
             border-bottom: 1px solid #eee;
-        }
-        .hospital-logo {
-            width: 150px; /* 图标宽度，可调整 */
-            height: auto;
-            margin-bottom: 1rem;
-            border-radius: 8px;
         }
         .stock-alert {
             background-color: #fff3cd;
@@ -211,9 +205,6 @@
                 width: 100%;
                 position: static;
             }
-            .hospital-logo {
-                width: 120px;
-            }
         }
     </style>
 </head>
@@ -246,11 +237,9 @@
         <div class="table-container">
             <h2>Screw Inventory 螺絲庫存表</h2>
 
-            <!-- 新增：医院图标+补货提示区域 -->
+            <!-- 库存紧张提示区域（删除了img标签） -->
             <div class="hospital-section" id="hospitalSection">
-                <!-- 将军澳医院图标（先用示例链接，后续替换为你上传的图标） -->
-                <img src="https://raw.githubusercontent.com/tkohscrewinventory/nyh997tkoh/main/hospital-logo.png" alt="将军澳医院" class="hospital-logo">
-                <!-- 库存紧张提示 -->
+                <!-- 只保留补货提示 -->
                 <div class="stock-alert">
                     <h3>⚠️ 库存紧张项目（需补货）</h3>
                     <div id="alertItemList"></div>
@@ -332,7 +321,7 @@
             });
         }
 
-        // 分类点击逻辑（新增：控制医院区域显示/隐藏）
+        // 分类点击逻辑
         categoryLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -354,7 +343,7 @@
             });
         });
 
-        // 页面加载时：显示All Items内容+医院区域+补货提示
+        // 页面加载时：显示All Items内容+补货提示
         window.onload = () => {
             hospitalSection.style.display = 'block';
             renderAlertList();
