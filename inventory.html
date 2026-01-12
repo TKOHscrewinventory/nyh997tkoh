@@ -60,6 +60,18 @@
         .item-change-btn:hover {
             background-color: #2980b9;
         }
+        .history-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .history-btn:hover {
+            background-color: #27ae60;
+        }
         .logout-btn {
             background-color: #e74c3c;
             color: white;
@@ -217,7 +229,6 @@
             color: #e74c3c;
             font-weight: bold;
         }
-        /* 负数库存高亮显示（可选，提升辨识度） */
         .negative-stock {
             color: #e74c3c;
             font-weight: bold;
@@ -259,6 +270,7 @@
             <div id="datetimeDisplay"></div>
             <div class="nav-buttons">
                 <button class="item-change-btn" onclick="window.location.href='item-change.html'">item change</button>
+                <button class="history-btn" onclick="window.open('history.html', '_blank', 'width=1000,height=800')">History</button>
                 <button class="logout-btn" onclick="window.location.href='index.html'">登出</button>
             </div>
         </div>
@@ -363,12 +375,30 @@
             { key: 'locking', name: '2.4Φ locking screw', lengthList: lockingLengthList, catNoPrefix: '412.8' }
         ];
 
-        // ========== 数据初始化 ==========
+        // ========== 工具函数：时间处理（4个月有效期） ==========
+        // 获取4个月前的时间戳
+        function getFourMonthsAgoTimestamp() {
+            const now = new Date();
+            now.setMonth(now.getMonth() - 4);
+            return now.getTime();
+        }
+
+        // 清理超过4个月的历史记录
+        function cleanExpiredRecords() {
+            const allRecords = JSON.parse(localStorage.getItem('allChangeRecords')) || [];
+            const validTimestamp = getFourMonthsAgoTimestamp();
+            // 过滤出4个月内的记录
+            const validRecords = allRecords.filter(record => record.timestamp >= validTimestamp);
+            localStorage.setItem('allChangeRecords', JSON.stringify(validRecords));
+            return validRecords;
+        }
+
+        // ========== 数据初始化（修复数据消失问题：优先读取本地存储，仅本地无数据时初始化） ==========
         function initScrewData(type) {
             return type.lengthList.map(len => ({
                 catNo: `${type.catNoPrefix}${String(len).padStart(2, '0')}`,
                 length: len,
-                stock: 0, // 初始库存为0，允许后续变为负数
+                stock: 0,
                 status: '無庫存',
                 typeKey: type.key,
                 typeName: type.name
@@ -378,13 +408,16 @@
         let allScrewData = {};
         productTypes.forEach(type => {
             const storedData = JSON.parse(localStorage.getItem(`${type.key}Data`));
-            allScrewData[type.key] = storedData || initScrewData(type);
+            // 核心修复：只有本地无数据时才初始化，避免覆盖已有数据
+            allScrewData[type.key] = storedData ? storedData : initScrewData(type);
+            // 立即保存（确保数据持久化）
+            localStorage.setItem(`${type.key}Data`, JSON.stringify(allScrewData[type.key]));
         });
 
-        let changeRecords = JSON.parse(localStorage.getItem('changeRecords')) || [];
+        // 初始化全量历史记录（替代原来的仅5条）
+        let allChangeRecords = cleanExpiredRecords();
 
         // ========== 工具函数 ==========
-        // 更新库存状态：负数/0 → 無庫存，0<库存<50 → 庫存偏低，≥50 → 有庫存
         function updateStatus(item) {
             if (item.stock <= 0) {
                 item.status = '無庫存';
@@ -398,10 +431,6 @@
 
         function saveScrewData(typeKey) {
             localStorage.setItem(`${typeKey}Data`, JSON.stringify(allScrewData[typeKey]));
-        }
-
-        function saveChangeRecords() {
-            localStorage.setItem('changeRecords', JSON.stringify(changeRecords));
         }
 
         function getAllLowStockItems() {
@@ -429,11 +458,15 @@
                 : lowStockItems.map(item => `<div class="alert-item">Cat No. ${item.catNo} (${item.typeName} ${item.length}mm) - 庫存${item.stock}，${item.status}</div>`).join('');
         }
 
+        // 渲染最近5条记录（从全量历史记录中取最新的）
         function renderChangeRecords() {
             const tbody = document.getElementById('changeRecordTableBody');
-            tbody.innerHTML = changeRecords.length === 0
+            // 按时间戳倒序排序，取前5条
+            const recentRecords = [...allChangeRecords].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
+            
+            tbody.innerHTML = recentRecords.length === 0
                 ? '<td colspan="7" style="text-align:center;color:#666;">暫無庫存更改記錄</td>'
-                : changeRecords.reverse().map(record => `
+                : recentRecords.map(record => `
                     <tr>
                         <td>${record.time}</td>
                         <td>${record.catNo}</td>
@@ -444,15 +477,12 @@
                         <td class="${record.operation === '加庫存' ? 'operation-add' : 'operation-sub'}">${record.operation}</td>
                     </tr>
                 `).join('');
-            changeRecords.reverse();
         }
 
-        // 渲染表格：负数库存添加高亮样式
         function renderScrewTable(typeKey) {
             const tbody = document.getElementById(`${typeKey}-table-body`);
             tbody.innerHTML = allScrewData[typeKey].map(item => {
                 const statusClass = item.status === '有庫存' ? 'status-in' : item.status === '庫存偏低' ? 'status-low' : 'status-out';
-                // 负数库存添加样式类
                 const stockClass = item.stock < 0 ? 'negative-stock' : '';
                 return `
                     <tr>
@@ -481,13 +511,16 @@
             }
         }
 
-        // ========== 监听localStorage变化 ==========
+        // ========== 监听localStorage变化（同步item change/history页面修改） ==========
         window.addEventListener('storage', () => {
+            // 重新读取库存数据
             productTypes.forEach(type => {
                 allScrewData[type.key] = JSON.parse(localStorage.getItem(`${type.key}Data`)) || allScrewData[type.key];
             });
-            changeRecords = JSON.parse(localStorage.getItem('changeRecords')) || changeRecords;
+            // 重新读取并清理过期记录
+            allChangeRecords = cleanExpiredRecords();
             
+            // 重新渲染
             renderAlertList();
             renderChangeRecords();
             productTypes.forEach(type => renderScrewTable(type.key));
@@ -513,11 +546,11 @@
 
         // ========== 页面初始化 ==========
         window.onload = () => {
+            // 初始化所有表格
             productTypes.forEach(type => renderScrewTable(type.key));
+            // 初始化All Items
             renderAlertList();
             renderChangeRecords();
-            productTypes.forEach(type => saveScrewData(type.key));
-            saveChangeRecords();
         };
     </script>
 </body>
